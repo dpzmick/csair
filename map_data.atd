@@ -1,0 +1,29 @@
+(* specifies the json data format for atdgen *)
+type dataset = {
+    data_source <json name="data sources">: string list;
+    metros:     port list;
+    routes:     route list;
+}
+
+type coordinate = {
+    ?n <json name="N">: int option;
+    ?s <json name="S">: int option;
+    ?e <json name="E">: int option;
+    ?w <json name="W">: int option;
+}
+
+type port = {
+    code:        string;
+    name:        string;
+    country:     string;
+    continent:   string;
+    timezone:    float;
+    coordinates: coordinate;
+    population:  int;
+    region:      int;
+}
+
+type route = {
+    ports:    string list;
+    distance: int;
+}
