@@ -10,5 +10,5 @@ let () =
     let pp = Graph.port_info_for g "SCL" in
     (* List.iter ~f:(fun e -> printf "%s\n" e.name) ps *)
     match pp with
-    | None -> printf "fuck"
+    | None -> printf "didnt work"
     | Some p -> printf "%s\n" p.name
