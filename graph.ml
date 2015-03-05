@@ -1,27 +1,16 @@
 open Core.Std
 open Map_data_t
 
-(* TODO where to put this, here is not the right place *)
-module PortComp = Comparator.Make(struct
-    type t = Map_data_t.port
-
-    let sexp_of_t p = String.sexp_of_t p.name
-    let compare p1 p2 = String.compare p1.name p2.name
-end)
-
-type fancy_map_type =
-    (port, (port * int) list, PortComp.comparator_witness) Map.t
-
 type t = {
-    strings_to_ports : Map_data_t.port String.Map.t;
-    ports_to_routes : fancy_map_type;
+    strings_to_ports : Port.t String.Map.t;
+    ports_to_routes : (port * int) list Port.Map.t;
 }
 
 (* TODO make this a fold *)
 let rec add_all_ports {strings_to_ports; ports_to_routes} ports = match ports with
     | []          -> {strings_to_ports; ports_to_routes}
     | port::ports ->
-            let new_map = Map.add strings_to_ports port.code port in
+            let new_map = Map.add strings_to_ports (Port.code port) port in
             add_all_ports {strings_to_ports = new_map; ports_to_routes} ports
 
 let routes_from ports_to_routes port =
@@ -45,7 +34,7 @@ let rec add_all_routes g routes = match routes with
 
 let empty () = {
     strings_to_ports = String.Map.empty;
-    ports_to_routes = Map.empty ~comparator:PortComp.comparator;
+    ports_to_routes = Map.empty ~comparator:Port.comparator;
 }
 
 let from {data_source; metros; routes} =

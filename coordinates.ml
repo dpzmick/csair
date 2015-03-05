@@ -3,6 +3,8 @@ open Core.Std
 
 type t = Map_data_t.coordinate
 
+let empty = {n=None;s=None;e=None;w=None}
+
 let string_of_t coord =
     let s1 = match coord.n with
              | None   -> ""
