@@ -1,0 +1,3 @@
+_build/
+map_data_*.*
+*.native
