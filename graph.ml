@@ -65,3 +65,13 @@ let longest_path g =
                 | None   -> aux rs
                 | Some v -> Int.max v (aux rs)
     in aux (all_routes g)
+
+let shortest_path g =
+    let rec aux = function
+        | []                 -> Int.max_value
+        | (p, reachable)::rs ->
+                let max_reachable = List.min_elt (List.map reachable ~f:(fun (p,d) -> d)) ~cmp:Int.compare in
+                match max_reachable with
+                | None   -> aux rs
+                | Some v -> Int.min v (aux rs)
+    in aux (all_routes g)
