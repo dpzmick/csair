@@ -56,6 +56,7 @@ let port_for_code g str = Map.find g.strings_to_ports str
 
 let all_routes {ports_to_routes;_} = Map.to_alist ports_to_routes
 
+(* TODO both of these can be a lot cleaner as well*)
 let longest_path g =
     let rec aux = function
         | []                 -> 0
