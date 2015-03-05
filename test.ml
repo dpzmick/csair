@@ -38,6 +38,7 @@ let test_port_for_code test_ctxt =
         assert_equal p.region        1;
     end
 
+(* Test to see if I can get everywhere you can fly from this city *)
 let test_routes_from_port test_ctxt =
     let should = ["LIM"; "MEX"] in
     let g = Graph.from mini_data in
