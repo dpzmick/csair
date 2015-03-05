@@ -1,7 +1,6 @@
 open Core.Std
 open Map_data_t
 
-
 (* TODO where to put this, here is not the right place *)
 module PortComp = Comparator.Make(struct
     type t = Map_data_t.port
@@ -18,31 +17,41 @@ type t = {
     ports_to_routes : fancy_map_type;
 }
 
+(* TODO make this a fold *)
+let rec add_all_ports {strings_to_ports; ports_to_routes} ports = match ports with
+    | []          -> {strings_to_ports; ports_to_routes}
+    | port::ports ->
+            let new_map = Map.add strings_to_ports port.code port in
+            add_all_ports {strings_to_ports = new_map; ports_to_routes} ports
+
 let routes_from ports_to_routes port =
     match Map.find ports_to_routes port with
     | None    -> []
     | Some rs -> rs
 
 let add_route {strings_to_ports; ports_to_routes} ({ports; distance} : route) =
-    let source = Map.find_exn strings_to_ports (List.nth_exn ports 0) in
-    let dest   = Map.find_exn strings_to_ports (List.nth_exn ports 1) in
-    let my_fancy_route = (dest, distance) in
-    let new_routes = my_fancy_route::(routes_from ports_to_routes source) in
-    {strings_to_ports; ports_to_routes = Map.add ports_to_routes source new_routes}
+    let source              = Map.find_exn strings_to_ports (List.nth_exn ports 0) in
+    let dest                = Map.find_exn strings_to_ports (List.nth_exn ports 1) in
+    let new_routes_forward  = (dest, distance)::(routes_from ports_to_routes source) in
+    let new_routes_backward = (source, distance)::(routes_from ports_to_routes dest) in
+    let new_forward         = Map.add ports_to_routes source new_routes_forward  in
+    let new_backward        = Map.add new_forward     dest   new_routes_backward in
+    {strings_to_ports; ports_to_routes = new_backward}
 
-let rec add_all_ports ports map = match ports with
-    | []          -> map
-    | port::ports -> add_all_ports ports (Map.add map port.code port)
+(* TODO make this a fold *)
+let rec add_all_routes g routes = match routes with
+    | []    -> g
+    | r::rs -> add_all_routes (add_route g r) rs
 
 let empty () = {
     strings_to_ports = String.Map.empty;
     ports_to_routes = Map.empty ~comparator:PortComp.comparator;
 }
 
-let from {data_source; metros; routes} = {
-    strings_to_ports = add_all_ports metros String.Map.empty;
-    ports_to_routes = Map.empty ~comparator:PortComp.comparator;
-}
+let from {data_source; metros; routes} =
+    let e = empty () in
+    let fst = add_all_ports e metros in
+    add_all_routes fst routes
 
 let all_ports {strings_to_ports;_} =
     List.map ~f:(fun (s,p) -> p)
