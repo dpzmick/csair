@@ -1,6 +1,9 @@
 PKG=atdgen
 
-all: test.native
+all: test.native main.native
+
+main.native: main.ml map_data_parser
+	corebuild -pkg $(PKG) $@
 
 test.native: test.ml map_data_parser
 	corebuild -pkg $(PKG) $@
