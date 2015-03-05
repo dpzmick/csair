@@ -4,11 +4,11 @@ open Map_data_t
 let list_all_cities g =
     List.iter ~f:(fun p -> printf "%s\n" p.name) (Graph.all_ports g)
 
-let port_info_for g p =
-    let port = Graph.port_for_code g p in
+let port_info_for g code =
+    let port = Graph.port_for_code g code in
     match port with
-    | None   -> printf "port %s found!\n" p
-    | Some p -> printf "port info: name: %s\n" p.name
+    | None   -> printf "port %s found!\n" code
+    | Some p -> printf "port info for %s\n%s\n" code (Port.string_of_t p)
 
 let command g =
     Command.basic
