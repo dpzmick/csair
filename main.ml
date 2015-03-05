@@ -10,6 +10,11 @@ let port_info_for g code =
     | None   -> printf "port %s found!\n" code
     | Some p -> printf "port info for %s\n%s\n" code (Port.string_of_t p)
 
+let print_stats g =
+    begin
+        printf "Longest Path: %d\n" (Graph.longest_path g);
+    end
+
 let command g =
     Command.basic
         ~summary: "Query the flight database"
@@ -23,7 +28,7 @@ let command g =
         (fun list_cities port_info stats () -> begin
             if list_cities                then (list_all_cities g);
             if (Option.is_some port_info) then (port_info_for g (Option.value_exn port_info));
-            if stats                      then printf "stats";
+            if stats                      then (print_stats g);
         end)
 
 let () =

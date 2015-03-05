@@ -53,3 +53,15 @@ let routes_from_port {ports_to_routes;_} p =
     | Some routes -> routes
 
 let port_for_code g str = Map.find g.strings_to_ports str
+
+let all_routes {ports_to_routes;_} = Map.to_alist ports_to_routes
+
+let longest_path g =
+    let rec aux = function
+        | []                 -> 0
+        | (p, reachable)::rs ->
+                let max_reachable = List.max_elt (List.map reachable ~f:(fun (p,d) -> d)) ~cmp:Int.compare in
+                match max_reachable with
+                | None   -> aux rs
+                | Some v -> Int.max v (aux rs)
+    in aux (all_routes g)

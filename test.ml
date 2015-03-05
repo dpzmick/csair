@@ -50,12 +50,17 @@ let test_routes_from_port test_ctxt =
             let codes = List.map ~f:(fun (p,d) -> p.code) outgoing in
             assert_contains_all should codes
 
+let test_longest test_ctxt =
+    let g = Graph.from mini_data in
+    assert_equal (Graph.longest_path g) 9982
+
 let suite =
     "suite">:::
         ["always_pass">::      always_pass;
          "all_ports">::        test_all_ports;
          "port_for_code">::    test_port_for_code;
-         "routes_from_port">:: test_routes_from_port]
+         "routes_from_port">:: test_routes_from_port;
+         "test_longest">::     test_longest]
 
 let () =
     run_test_tt_main suite
