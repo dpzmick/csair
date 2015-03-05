@@ -8,7 +8,7 @@ let mini_data =
     Map_data_j.dataset_of_string contents
 
 let assert_contains_all shoulds actuals =
-    List.iter ~f:(fun s -> assert_equal true (List.exists actuals (fun a -> a = s))) shoulds
+    List.iter ~f:(fun s -> assert_equal true (List.exists actuals ~f:(fun a -> a = s))) shoulds
 
 let always_pass test_ctxt =
     assert_equal true true
@@ -21,9 +21,9 @@ let test_all_ports test_ctxt =
     assert_contains_all shoulds actuals
 
 (* check that if I query a port by three letter value I get what I wanted *)
-let test_port_info test_ctxt =
+let test_port_for_code test_ctxt =
     let g = Graph.from mini_data in
-    let p = Graph.port_info_for g "SCL" in
+    let p = Graph.port_for_code g "SCL" in
     match p with
     | None   -> assert_failure "the port wasn't found"
     | Some p -> begin
@@ -38,11 +38,23 @@ let test_port_info test_ctxt =
         assert_equal p.region        1;
     end
 
+let test_routes_from_port test_ctxt =
+    let should = ["LIM"; "MEX"] in
+    let g = Graph.from mini_data in
+    let p = Graph.port_for_code g "SCL" in
+    match p with
+    | None    -> assert_failure "the port wasn't found"
+    | Some p ->
+            let outgoing = Graph.routes_from_port g p in
+            let codes = List.map ~f:(fun (p,d) -> p.code) outgoing in
+            assert_contains_all should codes
+
 let suite =
     "suite">:::
-        ["always_pass">:: always_pass;
-         "all_ports">::   test_all_ports;
-         "port_info">::   test_port_info]
+        ["always_pass">::      always_pass;
+         "all_ports">::        test_all_ports;
+         "port_for_code">::    test_port_for_code;
+         "routes_from_port">:: test_routes_from_port]
 
 let () =
     run_test_tt_main suite

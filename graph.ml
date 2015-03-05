@@ -10,13 +10,8 @@ module PortComp = Comparator.Make(struct
     let compare p1 p2 = String.compare p1.name p2.name
 end)
 
-type fancy_route = {
-    dest: port;
-    dist: int;
-}
-
 type fancy_map_type =
-    (port, fancy_route list, PortComp.comparator_witness) Map.t
+    (port, (port * int) list, PortComp.comparator_witness) Map.t
 
 type t = {
     strings_to_ports : Map_data_t.port String.Map.t;
@@ -31,7 +26,7 @@ let routes_from ports_to_routes port =
 let add_route {strings_to_ports; ports_to_routes} ({ports; distance} : route) =
     let source = Map.find_exn strings_to_ports (List.nth_exn ports 0) in
     let dest   = Map.find_exn strings_to_ports (List.nth_exn ports 1) in
-    let my_fancy_route = ({dest; dist = distance} : fancy_route) in
+    let my_fancy_route = (dest, distance) in
     let new_routes = my_fancy_route::(routes_from ports_to_routes source) in
     {strings_to_ports; ports_to_routes = Map.add ports_to_routes source new_routes}
 
@@ -53,4 +48,10 @@ let all_ports {strings_to_ports;_} =
     List.map ~f:(fun (s,p) -> p)
     (Map.to_alist strings_to_ports)
 
-let port_info_for g str = Map.find g.strings_to_ports str
+let routes_from_port {ports_to_routes;_} p =
+    let routes = Map.find ports_to_routes p in
+    match routes with
+    | None -> failwith "what"
+    | Some routes -> routes
+
+let port_for_code g str = Map.find g.strings_to_ports str

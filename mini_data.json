@@ -45,7 +45,7 @@
             "ports": ["LIM", "MEX"] ,
             "distance": 1235
         } , {
-			"ports" : ["SCL" , "MEX"] ,
+			"ports" : ["MEX" , "SCL"] ,
 			"distance" : 9982
         }
 	]
