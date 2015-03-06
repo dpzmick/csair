@@ -37,13 +37,13 @@ let empty () = {
     ports_to_routes = Map.empty ~comparator:Port.comparator;
 }
 
-let from {data_source; metros; routes} =
+let from {metros; routes;_} =
     let e = empty () in
     let fst = add_all_ports e metros in
     add_all_routes fst routes
 
 let all_ports {strings_to_ports;_} =
-    List.map ~f:(fun (s,p) -> p)
+    List.map ~f:(fun (_,p) -> p)
     (Map.to_alist strings_to_ports)
 
 let routes_from_port {ports_to_routes;_} p =
@@ -60,8 +60,8 @@ let all_routes {ports_to_routes;_} = Map.to_alist ports_to_routes
 let longest_path g =
     let rec aux = function
         | []                 -> 0
-        | (p, reachable)::rs ->
-                let max_reachable = List.max_elt (List.map reachable ~f:(fun (p,d) -> d)) ~cmp:Int.compare in
+        | (_, reachable)::rs ->
+                let max_reachable = List.max_elt (List.map reachable ~f:(fun (_,d) -> d)) ~cmp:Int.compare in
                 match max_reachable with
                 | None   -> aux rs
                 | Some v -> Int.max v (aux rs)
@@ -70,8 +70,8 @@ let longest_path g =
 let shortest_path g =
     let rec aux = function
         | []                 -> Int.max_value
-        | (p, reachable)::rs ->
-                let max_reachable = List.min_elt (List.map reachable ~f:(fun (p,d) -> d)) ~cmp:Int.compare in
+        | (_, reachable)::rs ->
+                let max_reachable = List.min_elt (List.map reachable ~f:(fun (_,d) -> d)) ~cmp:Int.compare in
                 match max_reachable with
                 | None   -> aux rs
                 | Some v -> Int.min v (aux rs)
