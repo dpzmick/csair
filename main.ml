@@ -16,6 +16,7 @@ let print_stats g =
         printf "Shortest Path: %d\n"       (Graph.shortest_path g);
         printf "Largest Population: %d\n"  (Graph.largest_pop g);
         printf "Smallest Population: %d\n" (Graph.smallest_pop g);
+        printf "Average Population: %f\n"  (Graph.average_population g);
     end
 
 let command g =
