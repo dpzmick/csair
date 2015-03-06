@@ -65,6 +65,10 @@ let test_pop_stats test_ctxt =
         assert_equal 23400000 (Graph.largest_pop g);
     end
 
+let test_average_pop test_ctxt =
+    let g = Graph.from mini_data in
+    assert_equal (cmp_float (Graph.average_population g) 12816666.6667) true
+
 let suite =
     "suite">:::
         ["always_pass">::      always_pass;
@@ -73,7 +77,8 @@ let suite =
          "routes_from_port">:: test_routes_from_port;
          "test_longest">::     test_longest;
          "test_shortest">::    test_shortest;
-         "test_pop_stats">::   test_pop_stats]
+         "test_pop_stats">::   test_pop_stats;
+         "test_average_pop">:: test_average_pop]
 
 let () =
     run_test_tt_main suite

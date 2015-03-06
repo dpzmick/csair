@@ -13,3 +13,4 @@ val longest_path : t -> int
 val shortest_path: t -> int
 val largest_pop: t -> int
 val smallest_pop: t -> int
+val average_population : t -> float

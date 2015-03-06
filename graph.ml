@@ -88,3 +88,8 @@ let smallest_pop g =
     match List.min_elt pops ~cmp:Int.compare with
     | None -> 0
     | Some v -> v
+
+let average_population g =
+    let pops = List.map (all_ports g) ~f:Port.population in
+    let sum = List.fold ~init:0 ~f:(+) pops in
+    (float sum) /. (float (List.length pops))
