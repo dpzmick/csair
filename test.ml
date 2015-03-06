@@ -75,6 +75,13 @@ let test_continent_thing test_ctxt =
     let actuals = Graph.continents_served g in
     assert_contains_all actuals shoulds
 
+
+let test_gcm test_ctxt =
+    let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+LIM-MEX%2C+MEX-SCL&MS=wls&DU=mi" in
+    let g = Graph.from mini_data in
+    let gcm = Gcm_data.from g in
+    assert_equal should (Gcm_data.string_of_t gcm)
+
 let suite =
     "suite">:::
         ["always_pass">::          always_pass;
