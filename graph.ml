@@ -93,3 +93,20 @@ let average_population g =
     let pops = List.map (all_ports g) ~f:Port.population in
     let sum = List.fold ~init:0 ~f:(+) pops in
     (float sum) /. (float (List.length pops))
+
+let continents_served g =
+    let all = (all_routes g) in
+    let map =
+        List.fold all
+            ~init:String.Map.empty
+            ~f:(fun acc (source, dests) ->
+                List.fold dests
+                    ~init:acc
+                    ~f:(fun acc (port, _) ->
+                        let curr = Map.find acc (Port.continent port) in
+                        match curr with
+                        | None        -> Map.add acc (Port.continent port) ((Port.name port)::[])
+                        | Some cities -> if List.mem cities (Port.name port)
+                                         then acc
+                                         else Map.add acc (Port.continent port) ((Port.name port)::cities)))
+    in (Map.to_alist map)

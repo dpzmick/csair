@@ -69,16 +69,23 @@ let test_average_pop test_ctxt =
     let g = Graph.from mini_data in
     assert_equal (cmp_float (Graph.average_population g) 12816666.6667) true
 
+let test_continent_thing test_ctxt =
+    let shoulds = [("North America", ["Mexico City"]); ("South America", ["Lima"; "Santiago"])] in
+    let g = Graph.from mini_data in
+    let actuals = Graph.continents_served g in
+    assert_contains_all actuals shoulds
+
 let suite =
     "suite">:::
-        ["always_pass">::      always_pass;
-         "all_ports">::        test_all_ports;
-         "port_for_code">::    test_port_for_code;
-         "routes_from_port">:: test_routes_from_port;
-         "test_longest">::     test_longest;
-         "test_shortest">::    test_shortest;
-         "test_pop_stats">::   test_pop_stats;
-         "test_average_pop">:: test_average_pop]
+        ["always_pass">::          always_pass;
+         "all_ports">::            test_all_ports;
+         "port_for_code">::        test_port_for_code;
+         "routes_from_port">::     test_routes_from_port;
+         "test_longest">::         test_longest;
+         "test_shortest">::        test_shortest;
+         "test_pop_stats">::       test_pop_stats;
+         "test_average_pop">::     test_average_pop;
+         "test_continent_thing">:: test_continent_thing]
 
 let () =
     run_test_tt_main suite

@@ -26,8 +26,10 @@ end
 include T
 include Comparable.Make(T)
 
-let code p = p.code
+let code       p = p.code
+let name       p = p.name
 let population p = p.population
+let continent  p = p.continent
 
 let string_of_t p =
     sprintf "code: %s\nname: %s\ncountry: %s\ncontinent: %s\ntimezone: %f\ncoords: %s\npopulation: %d\nregion: %d"
