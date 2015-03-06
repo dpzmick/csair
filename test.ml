@@ -76,8 +76,10 @@ let test_continent_thing test_ctxt =
     assert_contains_all actuals shoulds
 
 
+(* NOTE: adding both directions to get the initial heading and stuff for both *)
 let test_gcm test_ctxt =
-    let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+LIM-MEX%2C+MEX-SCL&MS=wls&DU=mi" in
+    (* let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+LIM-MEX%2C+MEX-SCL&MS=wls&DU=mi" in *)
+    let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+SCL-MEX%2C+MEX-LIM%2C+MEX-SCL%2C+LIM-SCL%2C+LIM-MEX&MS=wls&DU=mi" in
     let g = Graph.from mini_data in
     let gcm = Gcm_data.from g in
     assert_equal should (Gcm_data.string_of_t gcm)
@@ -92,7 +94,8 @@ let suite =
          "test_shortest">::        test_shortest;
          "test_pop_stats">::       test_pop_stats;
          "test_average_pop">::     test_average_pop;
-         "test_continent_thing">:: test_continent_thing]
+         "test_continent_thing">:: test_continent_thing;
+         "test_gcm">::             test_gcm]
 
 let () =
     run_test_tt_main suite
