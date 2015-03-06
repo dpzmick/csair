@@ -28,7 +28,8 @@ let add_route {strings_to_ports; ports_to_routes} ({ports; distance} : route) =
     {strings_to_ports; ports_to_routes = new_backward}
 
 (* TODO make this a fold *)
-let rec add_all_routes g routes = match routes with
+let rec add_all_routes g routes =
+    match routes with
     | []    -> g
     | r::rs -> add_all_routes (add_route g r) rs
 
