@@ -15,14 +15,14 @@ let always_pass test_ctxt =
 
 (* check if all of the elements in the dataset are in the generated list of ports *)
 let test_all_ports test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let shoulds = mini_data.metros in
     let actuals = Graph.all_ports g in
     assert_contains_all shoulds actuals
 
 (* check that if I query a port by three letter value I get what I wanted *)
 let test_port_for_code test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let p = Graph.port_for_code g "SCL" in
     match p with
     | None   -> assert_failure "the port wasn't found"
@@ -41,7 +41,7 @@ let test_port_for_code test_ctxt =
 (* Test to see if I can get everywhere you can fly from this city *)
 let test_routes_from_port test_ctxt =
     let should = ["LIM"; "MEX"] in
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let p = Graph.port_for_code g "SCL" in
     match p with
     | None    -> assert_failure "the port wasn't found"
@@ -51,33 +51,33 @@ let test_routes_from_port test_ctxt =
             assert_contains_all should codes
 
 let test_longest test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     assert_equal (Graph.longest_path g) 9982
 
 let test_shortest test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     assert_equal (Graph.shortest_path g) 1235
 
 let test_pop_stats test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     begin
         assert_equal 6000000 (Graph.smallest_pop g);
         assert_equal 23400000 (Graph.largest_pop g);
     end
 
 let test_average_pop test_ctxt =
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     assert_equal (cmp_float (Graph.average_population g) 12816666.6667) true
 
 let test_continent_thing test_ctxt =
     let shoulds = [("North America", ["Mexico City"]); ("South America", ["Lima"; "Santiago"])] in
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let actuals = Graph.continents_served g in
     assert_contains_all actuals shoulds
 
 let test_hubs test_ctxt =
     let shoulds = ["SCL";"LIM";"MEX"] in (* TODO generate better test data *)
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let hubs = Graph.hubs g in
     match hubs with
     | None -> assert_failure "no hubs found"
@@ -87,7 +87,7 @@ let test_hubs test_ctxt =
 let test_gcm test_ctxt =
     (* let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+LIM-MEX%2C+MEX-SCL&MS=wls&DU=mi" in *)
     let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+SCL-MEX%2C+MEX-LIM%2C+MEX-SCL%2C+LIM-SCL%2C+LIM-MEX&MS=wls&DU=mi" in
-    let g = Graph.from mini_data in
+    let g = Graph.t_of_dataset mini_data in
     let gcm = Gcm_data.from g in
     assert_equal should (Gcm_data.string_of_t gcm)
 

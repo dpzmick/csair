@@ -53,5 +53,5 @@ let command g =
         end)
 
 let () =
-    let g = Graph.from (Map_data_j.dataset_of_string (In_channel.read_all "map_data.json")) in
+    let g = Graph.t_of_dataset (Map_data_j.dataset_of_string (In_channel.read_all "map_data.json")) in
     Command.run (command g)

@@ -38,7 +38,7 @@ let empty () = {
     ports_to_routes = Map.empty ~comparator:Port.comparator;
 }
 
-let from {metros; routes;_} =
+let t_of_dataset {metros; routes;_} =
     let e = empty () in
     let fst = add_all_ports e metros in
     add_all_routes fst routes
