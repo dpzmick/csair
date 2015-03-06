@@ -1,5 +1,6 @@
 open Core.Std
 open Map_data_t
+open Sys
 
 let list_all_cities g =
     List.iter ~f:(fun p -> printf "%s\n" p.name) (Graph.all_ports g)
@@ -34,11 +35,14 @@ let command g =
             +> flag "-L" no_arg ~doc: " list all the cities CSAir flies to"
             +> flag "-P" (optional string) ~doc:"code get information about a specific port (given by port code)"
             +> flag "-S" no_arg ~doc:" get statistical information about the CSAir network"
+            +> flag "-M" no_arg ~doc:" open great circle mapper with this map"
         )
-        (fun list_cities port_info stats () -> begin
+        (fun list_cities port_info stats gcm () -> begin
             if list_cities                then (list_all_cities g);
             if (Option.is_some port_info) then (port_info_for g (Option.value_exn port_info));
             if stats                      then (print_stats g);
+            if gcm                        then printf "return: %d\n"
+                                                (Sys.command (sprintf "open %s" (Gcm_data.string_of_t (Gcm_data.from g))));
         end)
 
 let () =
