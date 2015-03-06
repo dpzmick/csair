@@ -58,6 +58,13 @@ let test_shortest test_ctxt =
     let g = Graph.from mini_data in
     assert_equal (Graph.shortest_path g) 1235
 
+let test_pop_stats test_ctxt =
+    let g = Graph.from mini_data in
+    begin
+        assert_equal 6000000 (Graph.smallest_pop g);
+        assert_equal 23400000 (Graph.largest_pop g);
+    end
+
 let suite =
     "suite">:::
         ["always_pass">::      always_pass;
@@ -65,7 +72,8 @@ let suite =
          "port_for_code">::    test_port_for_code;
          "routes_from_port">:: test_routes_from_port;
          "test_longest">::     test_longest;
-         "test_shortest">::    test_shortest]
+         "test_shortest">::    test_shortest;
+         "test_pop_stats">::   test_pop_stats]
 
 let () =
     run_test_tt_main suite

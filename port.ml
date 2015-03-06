@@ -27,7 +27,7 @@ include T
 include Comparable.Make(T)
 
 let code p = p.code
-
+let population p = p.population
 
 let string_of_t p =
     sprintf "code: %s\nname: %s\ncountry: %s\ncontinent: %s\ntimezone: %f\ncoords: %s\npopulation: %d\nregion: %d"

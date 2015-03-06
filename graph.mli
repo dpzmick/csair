@@ -11,3 +11,5 @@ val all_routes : t -> (Port.t * (Port.t * int) list) list
 
 val longest_path : t -> int
 val shortest_path: t -> int
+val largest_pop: t -> int
+val smallest_pop: t -> int

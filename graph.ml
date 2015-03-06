@@ -76,3 +76,15 @@ let shortest_path g =
                 | None   -> aux rs
                 | Some v -> Int.min v (aux rs)
     in aux (all_routes g)
+
+let largest_pop g =
+    let pops = List.map (all_ports g) ~f:Port.population in
+    match List.max_elt pops ~cmp:Int.compare with
+    | None -> 0
+    | Some v -> v
+
+let smallest_pop g =
+    let pops = List.map (all_ports g) ~f:Port.population in
+    match List.min_elt pops ~cmp:Int.compare with
+    | None -> 0
+    | Some v -> v

@@ -9,3 +9,4 @@ val string_of_t : t -> string
 val empty : t
 
 val code : t -> string
+val population : t -> int
