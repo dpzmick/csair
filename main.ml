@@ -12,7 +12,10 @@ let port_info_for g code =
 
 let print_stats g =
     begin
-        printf "Longest Path: %d\n" (Graph.longest_path g);
+        printf "Longest Path: %d\n"        (Graph.longest_path g);
+        printf "Shortest Path: %d\n"       (Graph.shortest_path g);
+        printf "Largest Population: %d\n"  (Graph.largest_pop g);
+        printf "Smallest Population: %d\n" (Graph.smallest_pop g);
     end
 
 let command g =
