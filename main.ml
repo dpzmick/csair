@@ -17,6 +17,12 @@ let print_stats g =
         printf "Largest Population: %d\n"  (Graph.largest_pop g);
         printf "Smallest Population: %d\n" (Graph.smallest_pop g);
         printf "Average Population: %f\n"  (Graph.average_population g);
+        List.iter (Graph.continents_served g)
+            ~f:(fun (continent, cities) -> begin
+                printf "Cities reachable on continent %s:\n" continent;
+                List.iter cities
+                    ~f:(fun city -> printf "\t%s\n" city)
+            end)
     end
 
 let command g =
