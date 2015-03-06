@@ -2,7 +2,7 @@
 type dataset = {
     data_source <json name="data sources">: string list;
     metros:     port list;
-    routes:     route list;
+    routes:     json_route list;
 }
 
 type coordinate = {
@@ -23,7 +23,7 @@ type port = {
     region:      int;
 }
 
-type route = {
+type json_route = {
     ports:    string list;
     distance: int;
 }

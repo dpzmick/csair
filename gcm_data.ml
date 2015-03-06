@@ -6,12 +6,8 @@ let from g =
     let all = (Graph.all_routes g) in
     List.fold all
         ~init:[]
-        ~f:(fun acc (start_port, reach_ports) ->
-            List.fold reach_ports
-                ~init:acc
-                ~f:(fun acc (reach,_) ->
-                    (sprintf "%s-%s" (Port.code start_port) (Port.code reach))::acc
-                )
+        ~f:(fun acc route ->
+            (sprintf "%s-%s" (Port.code (Route.from_port route)) (Port.code (Route.to_port route)))::acc
         )
 
 let string_of_t strings =

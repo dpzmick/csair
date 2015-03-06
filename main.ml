@@ -12,9 +12,17 @@ let port_info_for g code =
     | Some p -> printf "port info for %s\n%s\n" code (Port.string_of_t p)
 
 let print_stats g =
+    let longest = Graph.longest_path g in
+    let shortest = Graph.shortest_path g in
     begin
-        printf "Longest Path: %d\n"        (Graph.longest_path g);
-        printf "Shortest Path: %d\n"       (Graph.shortest_path g);
+        match longest with
+        | None -> printf "There was no longest path"
+        | Some r -> printf "Longest Path: %d\n" (Route.distance r);
+
+        match shortest with
+        | None -> printf "There was no shortest path"
+        | Some r -> printf "Shortest Path: %d\n" (Route.distance r);
+
         printf "Largest Population: %d\n"  (Graph.largest_pop g);
         printf "Smallest Population: %d\n" (Graph.smallest_pop g);
         printf "Average Population: %f\n"  (Graph.average_population g);

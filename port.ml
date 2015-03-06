@@ -20,7 +20,7 @@ module T = struct
 
     (* TODO these are massive hacks!! *)
     let sexp_of_t p = String.sexp_of_t p.name
-    let t_of_sexp s = empty
+    let t_of_sexp _ = empty
 end
 
 include T

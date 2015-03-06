@@ -47,16 +47,21 @@ let test_routes_from_port test_ctxt =
     | None    -> assert_failure "the port wasn't found"
     | Some p ->
             let outgoing = Graph.routes_from_port g p in
-            let codes = List.map ~f:(fun (p,d) -> p.code) outgoing in
+            let ports = List.map ~f:Route.to_port outgoing in
+            let codes = List.map ~f:Port.code ports in
             assert_contains_all should codes
 
 let test_longest test_ctxt =
     let g = Graph.t_of_dataset mini_data in
-    assert_equal (Graph.longest_path g) 9982
+    match (Graph.longest_path g) with
+    | None    -> assert_failure "Not found"
+    | Some r -> assert_equal (Route.distance r) 9982
 
 let test_shortest test_ctxt =
     let g = Graph.t_of_dataset mini_data in
-    assert_equal (Graph.shortest_path g) 1235
+    match (Graph.shortest_path g) with
+    | None    -> assert_failure "Not found"
+    | Some r -> assert_equal (Route.distance r) 1235
 
 let test_pop_stats test_ctxt =
     let g = Graph.t_of_dataset mini_data in
