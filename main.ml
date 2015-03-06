@@ -23,7 +23,14 @@ let print_stats g =
                 printf "Cities reachable on continent %s:\n" continent;
                 List.iter cities
                     ~f:(fun city -> printf "\t%s\n" city)
-            end)
+            end);
+        match (Graph.hubs g) with
+        | None -> printf "No hubs\n"
+        | Some (hub_connections, hubs) -> begin
+                printf "Hubs with %d connections: " hub_connections;
+                List.iter hubs ~f:(fun hub -> printf "%s, " (Port.name hub));
+                printf "\n";
+        end
     end
 
 let command g =
