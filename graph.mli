@@ -10,8 +10,9 @@ val routes_from_port: t -> Port.t -> (Port.t * int) list
 val all_routes : t -> (Port.t * (Port.t * int) list) list
 
 val longest_path : t -> int
-val shortest_path: t -> int
-val largest_pop: t -> int
-val smallest_pop: t -> int
+val shortest_path : t -> int
+val largest_pop : t -> int
+val smallest_pop : t -> int
 val average_population : t -> float
 val continents_served : t -> (string * (string list)) list
+val hubs : t -> (int * Port.t list) option

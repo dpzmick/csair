@@ -75,6 +75,13 @@ let test_continent_thing test_ctxt =
     let actuals = Graph.continents_served g in
     assert_contains_all actuals shoulds
 
+let test_hubs test_ctxt =
+    let shoulds = ["SCL";"LIM";"MEX"] in (* TODO generate better test data *)
+    let g = Graph.from mini_data in
+    let hubs = Graph.hubs g in
+    match hubs with
+    | None -> assert_failure "no hubs found"
+    | Some (d, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
 
 (* NOTE: adding both directions to get the initial heading and stuff for both *)
 let test_gcm test_ctxt =
@@ -95,6 +102,7 @@ let suite =
          "test_pop_stats">::       test_pop_stats;
          "test_average_pop">::     test_average_pop;
          "test_continent_thing">:: test_continent_thing;
+         "test_hubs">::            test_hubs;
          "test_gcm">::             test_gcm]
 
 let () =

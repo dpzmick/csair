@@ -111,3 +111,14 @@ let continents_served g =
                                          then acc
                                          else Map.add acc (Port.continent port) ((Port.name port)::cities)))
     in (Map.to_alist map)
+
+let hubs g =
+    let map =
+        List.fold (all_routes g)
+            ~init:Int.Map.empty
+            ~f:(fun acc (source, dests) ->
+                match Map.find acc (List.length dests) with
+                | None         -> Map.add acc (List.length dests) [source]
+                | Some sources -> Map.add acc (List.length dests) (source::sources)
+            )
+    in Map.max_elt map
