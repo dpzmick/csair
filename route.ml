@@ -14,5 +14,5 @@ let to_json_route p = {
 }
 
 let from_port p = p.from_port
-let to_port p = p.to_port
-let distance p = p.distance
+let to_port   p = p.to_port
+let distance  p = p.distance
