@@ -78,7 +78,14 @@ let query_cmd g cmd =
     | other::_ -> printf "command error: query %s is not a valid query\n" other
     | [] -> printf "command error: no query given\n"
 
-let edit_cmd g cmd = printf "edit cmd\n"
+let edit_port_cmd g cmd = printf "edit a port\n"
+let edit_routes_cmd g cmd = printf "edit a route\n"
+
+let edit_cmd g cmd =
+    match cmd with
+    | "port"::remain -> edit_port_cmd g remain
+    | "routes"::remain -> edit_routes_cmd g remain
+    | _ -> printf "command error: invalid edit command\n"
 
 let command g cmd =
     match cmd with
