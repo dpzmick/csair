@@ -11,50 +11,7 @@ let port_info_for g code =
     | None   -> printf "port %s not found!\n" code
     | Some p -> printf "port info for %s\n---\n%s\n" code (Port.string_of_t p)
 
-let port_query g cmd =
-    match cmd with
-    | codes -> List.iter codes ~f:(port_info_for g)
-    | [] -> printf "command error: port codes not specified"
-
-let longest_single_flight_cmd g =
-    let longest = Graph.longest_path g in
-    match longest with
-    | None -> printf "there was no longest flight\n"
-    | Some r -> printf "Longest flight: %s -> %s, distance: %d\n"
-                    (Port.code (Route.from_port r)) (Port.code (Route.to_port r)) (Route.distance r)
-
-let greatest_query g cmd =
-    match cmd with
-    | "flight"::[] -> longest_single_flight_cmd g
-    | "population"::[] -> printf "Largest Population: %d\n"  (Graph.largest_pop g);
-    | _ -> printf "command error: error to greatest query\n"
-
-let smallest_single_flight_cmd g =
-    let longest = Graph.shortest_path g in
-    match longest with
-    | None -> printf "there was no shortest flight\n"
-    | Some r -> printf "Shortest flight: %s -> %s, distance: %d\n"
-                    (Port.code (Route.from_port r)) (Port.code (Route.to_port r)) (Route.distance r)
-
-let smallest_query g cmd =
-    match cmd with
-    | "flight"::[] -> smallest_single_flight_cmd g
-    | "population"::[] -> printf "Smallest Population: %d\n"  (Graph.smallest_pop g);
-    | _ -> printf "command error: error to greatest query\n"
-
-let average_query g cmd =
-    match cmd with
-    | "flight"::[] -> printf "not yet implemented\n"
-    | "population"::[] -> printf "Average Population: %f\n"  (Graph.average_population g);
-    | _ -> printf "command error: error to greatest query\n"
-
-let size_query g cmd =
-    match cmd with
-    | "greatest"::remain -> greatest_query g remain
-    | "smallest"::remain -> smallest_query g remain
-    | "average"::remain -> average_query g remain
-    | other::_ -> printf "command error: invalid size query %s\n" other
-    | [] -> printf "command error: no size subquery given\n"
+let port_query g codes = List.iter codes ~f:(port_info_for g)
 
 let print_continents g =
     List.iter (Graph.continents_served g)
@@ -79,17 +36,45 @@ let list_query g cmd =
     | "continents"::[] -> print_continents g
     | _ -> printf "command error: list query error\n"
 
-let info_query g cmd =
+let longest_single_flight_cmd g =
+    let longest = Graph.longest_path g in
+    match longest with
+    | None -> printf "there was no longest flight\n"
+    | Some r -> printf "Longest flight: %s -> %s, distance: %d\n"
+                    (Port.code (Route.from_port r)) (Port.code (Route.to_port r)) (Route.distance r)
+
+let biggest_query g cmd =
     match cmd with
-    | "size"::remain -> size_query g remain
-    | "list"::remain -> list_query g remain
-    | other::_ -> printf "command error: invalid info query %s\n" other
-    | [] -> printf "command error: no info subquery given\n"
+    | "flight"::[] -> longest_single_flight_cmd g
+    | "population"::[] -> printf "Largest Population: %d\n"  (Graph.largest_pop g);
+    | _ -> printf "command error: error to greatest query\n"
+
+let smallest_single_flight_cmd g =
+    let longest = Graph.shortest_path g in
+    match longest with
+    | None -> printf "there was no shortest flight\n"
+    | Some r -> printf "Shortest flight: %s -> %s, distance: %d\n"
+                    (Port.code (Route.from_port r)) (Port.code (Route.to_port r)) (Route.distance r)
+
+let smallest_query g cmd =
+    match cmd with
+    | "flight"::[] -> smallest_single_flight_cmd g
+    | "population"::[] -> printf "Smallest Population: %d\n"  (Graph.smallest_pop g);
+    | _ -> printf "command error: error to greatest query\n"
+
+let average_query g cmd =
+    match cmd with
+    | "flight"::[] -> printf "not yet implemented\n"
+    | "population"::[] -> printf "Average Population: %f\n"  (Graph.average_population g);
+    | _ -> printf "command error: error to greatest query\n"
 
 let query_cmd g cmd =
     match cmd with
     | "ports"::remain -> port_query g remain
-    | "info"::remain -> info_query g remain
+    | "list"::remain -> list_query g remain
+    | "biggest"::remain -> biggest_query g remain
+    | "smallest"::remain -> smallest_query g remain
+    | "average"::remain -> average_query g remain
     | other::_ -> printf "command error: query %s is not a valid query\n" other
     | [] -> printf "command error: no query given\n"
 
@@ -99,6 +84,8 @@ let command g cmd =
     match cmd with
     | _::"query"::remain -> query_cmd g remain
     | _::"edit"::remain  -> edit_cmd  g remain
+    | _::"map"::[]       -> printf "return: %d\n"
+                                (Sys.command (sprintf "open %s" (Gcm_data.string_of_t (Gcm_data.from g))))
     | _ -> printf "error: command not recognized\n"
 
 let () =
