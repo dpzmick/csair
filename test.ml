@@ -7,8 +7,15 @@ let mini_data =
     let contents = In_channel.read_all "mini_data.json" in
     Map_data_j.dataset_of_string contents
 
+let directed_data =
+    let contents = In_channel.read_all "directed_data.json" in
+    Map_data_j.dataset_of_string contents
+
 let assert_contains_all shoulds actuals =
-    List.iter ~f:(fun s -> assert_equal true (List.exists actuals ~f:(fun a -> a = s))) shoulds
+    begin
+        List.iter ~f:(fun s -> assert_equal true (List.exists actuals ~f:(fun a -> a = s))) shoulds;
+        List.iter ~f:(fun s -> assert_equal true (List.exists shoulds ~f:(fun a -> a = s))) actuals;
+    end
 
 let always_pass test_ctxt =
     assert_equal true true
@@ -42,6 +49,19 @@ let test_port_for_code test_ctxt =
 let test_routes_from_port test_ctxt =
     let should = ["LIM"; "MEX"] in
     let g = Graph.t_of_dataset mini_data in
+    let p = Graph.port_for_code g "SCL" in
+    match p with
+    | None    -> assert_failure "the port wasn't found"
+    | Some p ->
+            let outgoing = Graph.routes_from_port g p in
+            let ports = List.map ~f:Route.to_port outgoing in
+            let codes = List.map ~f:Port.code ports in
+            assert_contains_all should codes
+
+(* Test to see if I can get everywhere you can fly from this city (directed case) *)
+let test_routes_from_port_directed test_ctxt =
+    let should = ["LIM"] in
+    let g = Graph.t_of_dataset directed_data in
     let p = Graph.port_for_code g "SCL" in
     match p with
     | None    -> assert_failure "the port wasn't found"
@@ -108,17 +128,18 @@ let test_gcm test_ctxt =
 
 let suite =
     "suite">:::
-        ["always_pass">::          always_pass;
-         "all_ports">::            test_all_ports;
-         "port_for_code">::        test_port_for_code;
-         "routes_from_port">::     test_routes_from_port;
-         "test_longest">::         test_longest;
-         "test_shortest">::        test_shortest;
-         "test_pop_stats">::       test_pop_stats;
-         "test_average_pop">::     test_average_pop;
-         "test_continent_thing">:: test_continent_thing;
-         "test_hubs">::            test_hubs;
-         "test_gcm">::             test_gcm]
+        ["always_pass">::               always_pass;
+         "all_ports">::                 test_all_ports;
+         "port_for_code">::             test_port_for_code;
+         "routes_from_port">::          test_routes_from_port;
+         "routes_from_port_directed">:: test_routes_from_port_directed;
+         "test_longest">::              test_longest;
+         "test_shortest">::             test_shortest;
+         "test_pop_stats">::            test_pop_stats;
+         "test_average_pop">::          test_average_pop;
+         "test_continent_thing">::      test_continent_thing;
+         "test_hubs">::                 test_hubs;
+         "test_gcm">::                  test_gcm]
 
 let () =
     run_test_tt_main suite

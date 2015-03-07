@@ -3,6 +3,7 @@ type dataset = {
     data_source <json name="data sources">: string list;
     metros:     port list;
     routes:     json_route list;
+    ~directed   <ocaml default="false">: bool;
 }
 
 type coordinate = {

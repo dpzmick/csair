@@ -19,7 +19,7 @@ let add_all_ports g ports =
         ~f:(fun map port -> Map.add map ~key:port ~data:[])
 
 (** Adds all the routes, assumes all the routes start and end at ports already in the dictionary *)
-let add_all_routes g json_routes =
+let add_all_routes g json_routes directed =
     (* make a list of all the routes in the list of json_routes (make sure both directions exist) *)
     let routes =
         List.fold json_routes
@@ -28,7 +28,11 @@ let add_all_routes g json_routes =
                 let port_one = (Option.value_exn (port_for_code g (List.nth_exn (json_route.ports) 0))) in
                 let port_two = (Option.value_exn (port_for_code g (List.nth_exn (json_route.ports) 1))) in
                 let distance = json_route.distance in
-                let new_routes = [Route.create port_one port_two distance; Route.create port_two port_one distance] in
+                let new_routes =
+                    match directed with
+                    | true  -> [Route.create port_one port_two distance]
+                    | false -> [Route.create port_one port_two distance; Route.create port_two port_one distance]
+                in
                 new_routes @ acc
             )
     in
@@ -45,8 +49,8 @@ let add_all_routes g json_routes =
 
 let empty () = Port.Map.empty
 
-let t_of_dataset {metros; routes;_} =
-    add_all_routes (add_all_ports (empty ()) metros) routes
+let t_of_dataset {metros; routes;directed;_} =
+    add_all_routes (add_all_ports (empty ()) metros) routes directed
 
 let all_ports ports_to_routes = Map.keys ports_to_routes
 
