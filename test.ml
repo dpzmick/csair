@@ -75,10 +75,20 @@ let test_average_pop test_ctxt =
     assert_equal (cmp_float (Graph.average_population g) 12816666.6667) true
 
 let test_continent_thing test_ctxt =
+    let aux cont shoulds actuals =
+        let names = List.Assoc.find_exn shoulds cont in
+        match List.Assoc.find actuals cont with
+        | None -> assert_failure "Something is wrong"
+        | Some onames -> assert_contains_all names onames
+    in
+
     let shoulds = [("North America", ["Mexico City"]); ("South America", ["Lima"; "Santiago"])] in
     let g = Graph.t_of_dataset mini_data in
     let actuals = Graph.continents_served g in
-    assert_contains_all actuals shoulds
+    begin
+        aux "North America" shoulds actuals;
+        aux "South America" shoulds actuals;
+    end
 
 let test_hubs test_ctxt =
     let shoulds = ["SCL";"LIM";"MEX"] in (* TODO generate better test data *)
@@ -90,11 +100,11 @@ let test_hubs test_ctxt =
 
 (* NOTE: adding both directions to get the initial heading and stuff for both *)
 let test_gcm test_ctxt =
-    (* let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+LIM-MEX%2C+MEX-SCL&MS=wls&DU=mi" in *)
-    let should = "http://www.gcmap.com/mapui?P=SCL-LIM%2C+SCL-MEX%2C+MEX-LIM%2C+MEX-SCL%2C+LIM-SCL%2C+LIM-MEX&MS=wls&DU=mi" in
+    let should = "http://www.gcmap.com/mapui?P=SCL-MEX%2C+SCL-LIM%2C+MEX-SCL%2C+MEX-LIM%2C+LIM-MEX%2C+LIM-SCL&MS=wls&DU=mi" in
     let g = Graph.t_of_dataset mini_data in
     let gcm = Gcm_data.from g in
-    assert_equal should (Gcm_data.string_of_t gcm)
+    let gcm_res = Gcm_data.string_of_t gcm in
+    assert_equal should gcm_res
 
 let suite =
     "suite">:::

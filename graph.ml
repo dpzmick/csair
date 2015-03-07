@@ -1,25 +1,24 @@
 open Core.Std
 include Map_data_t
 
-type t = {
-    strings_to_ports : Port.t String.Map.t;
-    ports_to_routes : Route.t list Port.Map.t;
-}
+type t = Route.t list Port.Map.t
 
-let port_for_code {strings_to_ports;_} str = String.Map.find strings_to_ports str
-
-(* TODO make this a fold *)
-let rec add_all_ports {strings_to_ports; ports_to_routes} ports = match ports with
-    | []          -> {strings_to_ports; ports_to_routes}
-    | port::ports ->
-            let new_map = Map.add strings_to_ports ~key:(Port.code port) ~data:port in
-            add_all_ports {strings_to_ports = new_map; ports_to_routes} ports
+let port_for_code ports_to_routes str =
+    let ports = Map.keys ports_to_routes in
+    List.find ports ~f:(fun p -> String.equal (Port.code p) str)
 
 let routes_from ports_to_routes port =
     match Map.find ports_to_routes port with
     | None    -> []
     | Some rs -> rs
 
+(** Adds the ports with empty route lists *)
+let add_all_ports g ports =
+    List.fold ports
+        ~init:g
+        ~f:(fun map port -> Map.add map ~key:port ~data:[])
+
+(** Adds all the routes, assumes all the routes start and end at ports already in the dictionary *)
 let add_all_routes g json_routes =
     (* make a list of all the routes in the list of json_routes (make sure both directions exist) *)
     let routes =
@@ -36,39 +35,28 @@ let add_all_routes g json_routes =
     (* Now we need to build up a new map with all of these routes in it *)
     let new_map =
         List.fold routes
-            ~init:(g.ports_to_routes)
+            ~init:g
             ~f:(fun map route ->
                 match Map.find map (Route.from_port route) with
                 | None        -> Map.add map ~key:(Route.from_port route) ~data:[route]
                 | Some routes -> Map.add map ~key:(Route.from_port route) ~data:(route::routes)
             )
-    in
-    {
-        strings_to_ports = g.strings_to_ports;
-        ports_to_routes  = new_map;
-    }
+    in new_map
 
-let empty () = {
-    strings_to_ports = String.Map.empty;
-    ports_to_routes = Port.Map.empty;
-}
+let empty () = Port.Map.empty
 
 let t_of_dataset {metros; routes;_} =
-    let e = empty () in
-    let fst = add_all_ports e metros in
-    add_all_routes fst routes
+    add_all_routes (add_all_ports (empty ()) metros) routes
 
-let all_ports {strings_to_ports;_} =
-    List.map ~f:(fun (_,p) -> p)
-    (Map.to_alist strings_to_ports)
+let all_ports ports_to_routes = Map.keys ports_to_routes
 
-let routes_from_port {ports_to_routes;_} p =
+let routes_from_port ports_to_routes p =
     let routes = Map.find ports_to_routes p in
     match routes with
     | None -> failwith "what"
     | Some routes -> routes
 
-let all_routes {ports_to_routes;_} =
+let all_routes ports_to_routes =
     Map.fold ports_to_routes
         ~init:[]
         ~f:(fun ~key:port ~data:routes acc -> acc @ routes)
@@ -111,7 +99,7 @@ let hubs g =
             ~f:(fun acc port ->
                 let len = List.length (routes_from_port g port) in
                 match Map.find acc len with
-                | None         -> Map.add acc len [port]
-                | Some sources -> Map.add acc len (port::sources)
+                | None         -> Map.add acc ~key:len ~data:[port]
+                | Some sources -> Map.add acc ~key:len ~data:(port::sources)
             )
     in Map.max_elt map
