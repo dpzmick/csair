@@ -49,7 +49,7 @@ let add_all_routes g json_routes directed =
 
 let empty () = Port.Map.empty
 
-let t_of_dataset {metros; routes;directed;_} =
+let t_of_dataset {metros; routes; directed;_} =
     add_all_routes (add_all_ports (empty ()) metros) routes directed
 
 let all_ports ports_to_routes = Map.keys ports_to_routes
