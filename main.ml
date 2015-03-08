@@ -89,12 +89,20 @@ let edit_cmd g cmd =
 
 let command g cmd =
     match cmd with
-    | _::"query"::remain -> query_cmd g remain
-    | _::"edit"::remain  -> edit_cmd  g remain
-    | _::"map"::[]       -> printf "return: %d\n"
+    | "query"::remain -> query_cmd g remain
+    | "edit"::remain  -> edit_cmd  g remain
+    | "map"::[]       -> printf "return: %d\n"
                                 (Sys.command (sprintf "open %s" (Gcm_data.string_of_t (Gcm_data.from g))))
     | _ -> printf "error: command not recognized\n"
 
 let () =
     let g = Graph.t_of_dataset (Map_data_j.dataset_of_string (In_channel.read_all "map_data.json")) in
-    command g (Array.to_list Sys.argv)
+    let cont = ref true in
+    while !cont do
+        let () = printf "> %!" in
+        let line = In_channel.input_line In_channel.stdin in
+        match line with
+        | None        -> cont := false
+        | Some "exit" -> cont := false
+        | Some cmd    -> command g (String.split ~on:' ' cmd)
+    done
