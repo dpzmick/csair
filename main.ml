@@ -2,6 +2,10 @@ open Core.Std
 open Map_data_t
 open Sys
 
+(**
+ * A highly imperative repl for querying and modifying the graph data
+ **)
+
 let list_all_cities g =
     List.iter ~f:(fun p -> printf "%s\n" p.name) (Graph.all_ports g)
 
@@ -69,34 +73,59 @@ let average_query g cmd =
     | _ -> printf "command error: error to greatest query\n"
 
 let query_cmd g cmd =
-    match cmd with
-    | "ports"::remain -> port_query g remain
-    | "list"::remain -> list_query g remain
-    | "biggest"::remain -> biggest_query g remain
-    | "smallest"::remain -> smallest_query g remain
-    | "average"::remain -> average_query g remain
-    | other::_ -> printf "command error: query %s is not a valid query\n" other
-    | [] -> printf "command error: no query given\n"
+    begin
+        match cmd with
+        | "ports"::remain -> port_query g remain
+        | "list"::remain -> list_query g remain
+        | "biggest"::remain -> biggest_query g remain
+        | "smallest"::remain -> smallest_query g remain
+        | "average"::remain -> average_query g remain
+        | other::_ -> printf "command error: query %s is not a valid query\n" other
+        | [] -> printf "command error: no query given\n"
+    end;
+    g (* "return" the same graph *)
 
 let edit_port_cmd g cmd = printf "edit a port\n"
 let edit_routes_cmd g cmd = printf "edit a route\n"
 
 let edit_cmd g cmd =
-    match cmd with
-    | "port"::remain -> edit_port_cmd g remain
-    | "routes"::remain -> edit_routes_cmd g remain
-    | _ -> printf "command error: invalid edit command\n"
+    begin
+        match cmd with
+        | "port"::remain -> edit_port_cmd g remain
+        | "routes"::remain -> edit_routes_cmd g remain
+        | _ -> printf "command error: invalid edit command\n"
+    end;
+    g (* "return" the same graph *)
+
+let map_cmd g cmd =
+    begin
+        match cmd with
+        | [] -> printf "return value: %d\n"
+                    (Sys.command (sprintf "open %s" (Gcm_data.string_of_t (Gcm_data.from g))))
+        | _ -> printf "command error: the map command takes no arguments\n"
+    end;
+    g (* "return" the same graph *)
+
+let write_cmd g cmd =
+    begin
+        match cmd with
+        | filename::[] -> printf "TODO write data to %s\n" filename
+        | _::_::_      -> printf "command error: I'm not sure what you are trying to do man\n"
+        | []           -> printf "command error: write command needs a filename\n"
+    end;
+    g
 
 let command g cmd =
     match cmd with
     | "query"::remain -> query_cmd g remain
     | "edit"::remain  -> edit_cmd  g remain
-    | "map"::[]       -> printf "return: %d\n"
-                                (Sys.command (sprintf "open %s" (Gcm_data.string_of_t (Gcm_data.from g))))
-    | _ -> printf "error: command not recognized\n"
+    | "map"::remain   -> map_cmd g remain
+    | "write"::remain -> write_cmd g remain
+    | _ -> printf "error: command not recognized\n"; g (* in error, don't change anything *)
 
 let () =
     let g = Graph.t_of_dataset (Map_data_j.dataset_of_string (In_channel.read_all "map_data.json")) in
+    let g = ref g in
     let cont = ref true in
     while !cont do
         let () = printf "> %!" in
@@ -104,5 +133,5 @@ let () =
         match line with
         | None        -> cont := false
         | Some "exit" -> cont := false
-        | Some cmd    -> command g (String.split ~on:' ' cmd)
+        | Some cmd    -> g := command (!g) (String.split ~on:' ' cmd)
     done
