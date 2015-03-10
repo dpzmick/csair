@@ -145,6 +145,38 @@ let test_port_add _ =
                 assert_contains_all shoulds actuals
     end
 
+let test_route_add _ =
+    let g = Graph.t_of_dataset mini_data in
+    (* try to add a route between a place and itself *)
+    begin
+        let g_fail = Graph.edit g (Graph.Edit.route_add "ASD" "ASD" "100") in
+        match (Graph.EditResult.new_graph g_fail) with
+        | None   -> assert_equal true true
+        | Some _ -> assert_failure "Should not have been able to add the route"
+    end;
+    (* try to add a route with one of the places non-existent *)
+    begin
+        let g_fail = Graph.edit g (Graph.Edit.route_add "ASD" "SCL" "100") in
+        match (Graph.EditResult.new_graph g_fail) with
+        | None   -> assert_equal true true
+        | Some _ -> assert_failure "Should not have been able to add the route"
+    end;
+    (* should work this time *)
+    begin
+        let g_fail = Graph.edit g (Graph.Edit.route_add "LIM" "SCL" "100") in
+        match (Graph.EditResult.new_graph g_fail) with
+        | None   -> assert_failure "should not have failed"
+        | Some _ ->
+                (* NOTE: remember that mini_data is not directed *)
+                (* NOTE: but, the add route only adds one direction *)
+                let shoulds = [("SCL", 2453); ("MEX", 1235); ("SCL", 100)] in (* (code,distance) of reachable *)
+                let actuals = (Graph.routes_from_port g (Option.value_exn (Graph.port_for_code g "LIM"))) in
+                let actuals = List.map actuals ~f:(fun r -> (Port.code (Route.from_port r), Route.distance r)) in
+                assert_contains_all actuals shoulds
+    end
+
+
+(* TODO test directed vs undirected *)
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -159,7 +191,8 @@ let suite =
          "test_continent_thing">::      test_continent_thing;
          "test_hubs">::                 test_hubs;
          "test_gcm">::                  test_gcm;
-         "test_port_add">::             test_port_add]
+         "test_port_add">::             test_port_add;
+         "test_route_add">::            test_route_add]
 
 let () =
     run_test_tt_main suite

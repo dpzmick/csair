@@ -130,10 +130,10 @@ let delete_route_cmd g cmd =
     | _                 -> (printf "command error: need source and dest\n"; g)
 
 let add_route_cmd g cmd =
-    let aux source dest () = Graph.edit g (Graph.Edit.route_add source dest) in
+    let aux source dest dist () = Graph.edit g (Graph.Edit.route_add source dest dist) in
     match cmd with
-    | source::dest::[] -> generic_edit g (aux source dest)
-    | _                -> (printf "command error: need source and dest\n"; g)
+    | source::dest::dist::[] -> generic_edit g (aux source dest dist)
+    | _                      -> (printf "command error: need source and dest\n"; g)
 
 
 let edit_cmd g cmd =

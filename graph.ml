@@ -9,8 +9,8 @@ module Edit = struct
         | PortDelete  of string
         | PortAdd     of string
         | RouteEdit   of (string * string * string)
-        | RouteDelete of (string*string)
-        | RouteAdd    of (string*string)
+        | RouteDelete of (string * string)
+        | RouteAdd    of (string * string * string)
 
     let port_edit code field value = PortEdit (code,field,value)
     let port_delete code = PortDelete code
@@ -18,7 +18,7 @@ module Edit = struct
 
     let route_edit source dest new_dist = RouteEdit (source,dest,new_dist)
     let route_delete source dest = RouteDelete (source,dest)
-    let route_add source dest = RouteAdd (source,dest)
+    let route_add source dest dist = RouteAdd (source,dest,dist)
 end
 
 (* TODO expand type with error reporting *)
@@ -107,4 +107,4 @@ let edit g edit =
     | PortAdd code                      -> add_port g code
     | RouteEdit (source,dest,new_dist)  -> EditResult.create None
     | RouteDelete (source,dest)         -> EditResult.create None
-    | RouteAdd (source,dest)            -> EditResult.create None
+    | RouteAdd (source,dest,dist)       -> EditResult.create None

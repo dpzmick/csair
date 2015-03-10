@@ -8,7 +8,7 @@ module Edit : sig
 
     val route_edit : string -> string -> string -> t
     val route_delete : string -> string -> t
-    val route_add : string -> string -> t
+    val route_add : string -> string -> string -> t
 end
 
 module EditResult : sig
