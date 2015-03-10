@@ -103,6 +103,7 @@ let add_port g code =
     | false -> EditResult.create (Some (add_all_ports g [new_port]))
     | true  -> EditResult.fail "port already added"
 
+(* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
     try
         let dist = int_of_string dist_string in
