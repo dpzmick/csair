@@ -1,9 +1,7 @@
 open Core.Std
 include Map_data_t
 
-module T = struct
-    type t = Route.t list Port.Map.t
-end
+type t = Route.t list Port.Map.t
 
 module Edit = struct
     type t =
@@ -24,8 +22,6 @@ module EditResult = struct
     let create v = v
     let new_graph t = t
 end
-
-include T
 
 let port_for_code ports_to_routes str =
     let ports = Map.keys ports_to_routes in
@@ -93,4 +89,4 @@ let edit g edit =
     let open Edit in
     match edit with
     | PortEdit (code,field,value) -> EditResult.create None
-    | RouteEdit _                 -> EditResult.create None
+    | PortDelete code             -> EditResult.create None

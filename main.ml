@@ -95,7 +95,7 @@ let query_cmd g cmd =
 let edit_port_cmd g cmd =
     let aux code field remain = begin
         printf "setting %s to %s for %s\n" field remain code;
-        let res = Graph.edit g (Graph.Edit.port code field remain) in
+        let res = Graph.edit g (Graph.Edit.port_edit code field remain) in
         match (Graph.EditResult.new_graph res) with
         | None    -> (printf "error doing update\n"; g)
         | Some gg -> gg

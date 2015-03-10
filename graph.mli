@@ -2,7 +2,8 @@ open Core.Std
 
 module Edit : sig
     type t
-    val port : string -> string -> string -> t
+    val port_edit : string -> string -> string -> t
+    val port_delete : string -> t
 end
 
 module EditResult : sig
