@@ -154,11 +154,18 @@ let test_route_add_same_place _ =
     | Some _ -> assert_failure "Should not have been able to add the route"
 
 (* try to add a route with one of the places non-existent *)
-let test_route_add_dne _ =
+let test_route_add_dne_src _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.route_add "ASD" "SCL" "100") in
     match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal true true
+    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "source doesn't exist"
+    | Some _ -> assert_failure "Should not have been able to add the route"
+
+let test_route_add_dne_dest _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "ASD" "100") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "dest doesn't exist"
     | Some _ -> assert_failure "Should not have been able to add the route"
 
 (* should work *)
@@ -212,7 +219,8 @@ let suite =
          "test_gcm">::                  test_gcm;
          "test_port_add">::             test_port_add;
          "test_route_add_same_place">:: test_route_add_same_place;
-         "test_route_add_dne">::        test_route_add_dne;
+         "test_route_add_dne_src">::    test_route_add_dne_src;
+         "test_route_add_dne_dest">::   test_route_add_dne_dest;
          "test_route_add">::            test_route_add;
          "test_route_add_non_int">::    test_route_add_non_int;
          "test_route_add_negative">::   test_route_add_negative;

@@ -113,8 +113,14 @@ let add_route g source dest dist_string =
             then EditResult.fail "source and dest are the same port"
             else
                 let source_port = (port_for_code g source) in
-                let dest_port   = (port_for_code g dest) in
-                EditResult.fail "oops"
+                match source_port with
+                | None    -> EditResult.fail "source doesn't exist"
+                | Some sp ->
+                        let dest_port = (port_for_code g dest) in
+                        match dest_port with
+                        | None    -> EditResult.fail "dest doesn't exist"
+                        | Some dp -> (* now we can actually add the route *)
+                                EditResult.fail "oops"
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 
