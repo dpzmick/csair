@@ -106,7 +106,9 @@ let add_port g code =
 let add_route g source dest dist_string =
     try
         let dist = int_of_string dist_string in
-        EditResult.fail "oops"
+        if dist <= 0
+        then EditResult.fail "distance must be greater than 0"
+        else EditResult.fail "oops"
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 

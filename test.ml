@@ -182,8 +182,20 @@ let test_route_add_non_int _ =
     | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance not a number"
     | Some _ -> assert_failure "should have failed"
 
+let test_route_add_negative _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "-1") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance must be greater than 0"
+    | Some _ -> assert_failure "should have failed"
 
-(* TODO test directed vs undirected *)
+let test_route_add_zero _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "0") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance must be greater than 0"
+    | Some _ -> assert_failure "should have failed"
+
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -200,7 +212,9 @@ let suite =
          "test_gcm">::                  test_gcm;
          "test_port_add">::             test_port_add;
          "test_route_add">::            test_route_add;
-         "test_route_add_non_int">::    test_route_add_non_int]
+         "test_route_add_non_int">::    test_route_add_non_int;
+         "test_route_add_negative">::   test_route_add_negative;
+         "test_route_add_zero">::       test_route_add_zero]
 
 let () =
     run_test_tt_main suite
