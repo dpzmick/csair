@@ -2,10 +2,13 @@ open Core.Std
 
 module Edit : sig
     type t
+    val port : string -> string -> string -> t
 end
 
 module EditResult : sig
-    type t
+    type 'a t
+    val create : 'a option -> 'a t
+    val new_graph : 'a t -> 'a option
 end
 
 type t
@@ -18,4 +21,4 @@ val routes_from_port: t -> Port.t -> Route.t list
 val all_ports : t -> Port.t list
 val all_routes : t -> Route.t list
 
-val edit : t -> Edit.t -> EditResult.t
+val edit : t -> Edit.t -> t EditResult.t

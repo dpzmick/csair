@@ -9,10 +9,15 @@ module Edit = struct
     type t =
         | PortEdit of (string * string * string)
         | RouteEdit of int
+
+    let port code field value = PortEdit (code,field,value)
 end
 
+(* TODO expand type with error reporting *)
 module EditResult = struct
-    type t = T.t option
+    type 'a t = 'a option
+    let create v = v
+    let new_graph t = t
 end
 
 include T
@@ -82,5 +87,5 @@ let all_routes ports_to_routes =
 let edit g edit =
     let open Edit in
     match edit with
-    | PortEdit (code,field,value) -> None
-
+    | PortEdit (code,field,value) -> EditResult.create None
+    | RouteEdit _                 -> EditResult.create None
