@@ -108,7 +108,13 @@ let add_route g source dest dist_string =
         let dist = int_of_string dist_string in
         if dist <= 0
         then EditResult.fail "distance must be greater than 0"
-        else EditResult.fail "oops"
+        else
+            if (String.equal source dest)
+            then EditResult.fail "source and dest are the same port"
+            else
+                let source_port = (port_for_code g source) in
+                let dest_port   = (port_for_code g dest) in
+                EditResult.fail "oops"
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 
