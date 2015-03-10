@@ -8,9 +8,14 @@ end
 module Edit = struct
     type t =
         | PortEdit of (string * string * string)
+        | PortDelete of string
+        | PortAdd of int
         | RouteEdit of int
+        | RouteDelete of int
+        | RouteAdd of int
 
-    let port code field value = PortEdit (code,field,value)
+    let port_edit code field value = PortEdit (code,field,value)
+    let port_delete code = PortDelete code
 end
 
 (* TODO expand type with error reporting *)
