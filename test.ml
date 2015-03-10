@@ -1,6 +1,7 @@
 open Core.Std
 open OUnit2
 open Graph
+open Graph_analytics
 include Map_data_t
 
 let mini_data =
@@ -73,26 +74,26 @@ let test_routes_from_port_directed test_ctxt =
 
 let test_longest test_ctxt =
     let g = Graph.t_of_dataset mini_data in
-    match (Graph.longest_path g) with
+    match (Graph_analytics.longest_path g) with
     | None    -> assert_failure "Not found"
     | Some r -> assert_equal (Route.distance r) 9982
 
 let test_shortest test_ctxt =
     let g = Graph.t_of_dataset mini_data in
-    match (Graph.shortest_path g) with
+    match (Graph_analytics.shortest_path g) with
     | None    -> assert_failure "Not found"
     | Some r -> assert_equal (Route.distance r) 1235
 
 let test_pop_stats test_ctxt =
     let g = Graph.t_of_dataset mini_data in
     begin
-        assert_equal 6000000 (Graph.smallest_pop g);
-        assert_equal 23400000 (Graph.largest_pop g);
+        assert_equal 6000000 (Graph_analytics.smallest_pop g);
+        assert_equal 23400000 (Graph_analytics.largest_pop g);
     end
 
 let test_average_pop test_ctxt =
     let g = Graph.t_of_dataset mini_data in
-    assert_equal (cmp_float (Graph.average_population g) 12816666.6667) true
+    assert_equal (cmp_float (Graph_analytics.average_population g) 12816666.6667) true
 
 let test_continent_thing test_ctxt =
     let aux cont shoulds actuals =
@@ -104,7 +105,7 @@ let test_continent_thing test_ctxt =
 
     let shoulds = [("North America", ["Mexico City"]); ("South America", ["Lima"; "Santiago"])] in
     let g = Graph.t_of_dataset mini_data in
-    let actuals = Graph.continents_served g in
+    let actuals = Graph_analytics.continents_served g in
     begin
         aux "North America" shoulds actuals;
         aux "South America" shoulds actuals;
@@ -113,7 +114,7 @@ let test_continent_thing test_ctxt =
 let test_hubs test_ctxt =
     let shoulds = ["SCL";"LIM";"MEX"] in (* TODO generate better test data *)
     let g = Graph.t_of_dataset mini_data in
-    let hubs = Graph.hubs g in
+    let hubs = Graph_analytics.hubs g in
     match hubs with
     | None -> assert_failure "no hubs found"
     | Some (d, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)

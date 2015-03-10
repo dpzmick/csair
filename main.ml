@@ -18,7 +18,7 @@ let port_info_for g code =
 let port_query g codes = List.iter codes ~f:(port_info_for g)
 
 let print_continents g =
-    List.iter (Graph.continents_served g)
+    List.iter (Graph_analytics.continents_served g)
         ~f:(fun (continent, cities) -> begin
             printf "Cities reachable on continent %s:\n" continent;
             List.iter cities
@@ -26,7 +26,7 @@ let print_continents g =
     end)
 
 let print_hubs g =
-    match (Graph.hubs g) with
+    match (Graph_analytics.hubs g) with
     | None -> printf "No hubs\n"
     | Some (hub_connections, hubs) -> begin
         printf "Hubs with %d connections: " hub_connections;
@@ -41,7 +41,7 @@ let list_query g cmd =
     | _ -> printf "command error: list query error\n"
 
 let longest_single_flight_cmd g =
-    let longest = Graph.longest_path g in
+    let longest = Graph_analytics.longest_path g in
     match longest with
     | None -> printf "there was no longest flight\n"
     | Some r -> printf "Longest flight: %s -> %s, distance: %d\n"
@@ -50,11 +50,11 @@ let longest_single_flight_cmd g =
 let biggest_query g cmd =
     match cmd with
     | "flight"::[] -> longest_single_flight_cmd g
-    | "population"::[] -> printf "Largest Population: %d\n"  (Graph.largest_pop g);
+    | "population"::[] -> printf "Largest Population: %d\n"  (Graph_analytics.largest_pop g);
     | _ -> printf "command error: error to greatest query\n"
 
 let smallest_single_flight_cmd g =
-    let longest = Graph.shortest_path g in
+    let longest = Graph_analytics.shortest_path g in
     match longest with
     | None -> printf "there was no shortest flight\n"
     | Some r -> printf "Shortest flight: %s -> %s, distance: %d\n"
@@ -63,13 +63,13 @@ let smallest_single_flight_cmd g =
 let smallest_query g cmd =
     match cmd with
     | "flight"::[] -> smallest_single_flight_cmd g
-    | "population"::[] -> printf "Smallest Population: %d\n"  (Graph.smallest_pop g);
+    | "population"::[] -> printf "Smallest Population: %d\n"  (Graph_analytics.smallest_pop g);
     | _ -> printf "command error: error to greatest query\n"
 
 let average_query g cmd =
     match cmd with
     | "flight"::[] -> printf "not yet implemented\n"
-    | "population"::[] -> printf "Average Population: %f\n"  (Graph.average_population g);
+    | "population"::[] -> printf "Average Population: %f\n"  (Graph_analytics.average_population g);
     | _ -> printf "command error: error to greatest query\n"
 
 let query_cmd g cmd =
@@ -85,17 +85,26 @@ let query_cmd g cmd =
     end;
     g (* "return" the same graph *)
 
-let edit_port_cmd g cmd = printf "edit a port\n"
-let edit_routes_cmd g cmd = printf "edit a route\n"
+let edit_port_cmd g cmd =
+    let aux code field remain = begin
+        printf "setting %s to %s for %s\n" field remain code;
+        let res = Graph.edit_port g code field remain in
+        match res with
+        | None    -> (printf "error doing update\n"; g)
+        | Some gg -> gg
+    end in
+    match cmd with
+    | _::[]                   -> (printf "command error: edit code field new_val\n"; g)
+    | code::field::remain::[] -> aux code field remain
+    | _                       -> (printf "command error: edit code field new_val\n"; g)
+
+let edit_routes_cmd g cmd = printf "edit a route\n"; g
 
 let edit_cmd g cmd =
-    begin
-        match cmd with
-        | "port"::remain -> edit_port_cmd g remain
-        | "routes"::remain -> edit_routes_cmd g remain
-        | _ -> printf "command error: invalid edit command\n"
-    end;
-    g (* "return" the same graph *)
+    match cmd with
+    | "port"::remain -> edit_port_cmd g remain
+    | "routes"::remain -> edit_routes_cmd g remain
+    | _ -> printf "command error: invalid edit command\n"; g
 
 let map_cmd g cmd =
     begin
@@ -118,7 +127,7 @@ let write_cmd g cmd =
 let command g cmd =
     match cmd with
     | "query"::remain -> query_cmd g remain
-    | "edit"::remain  -> edit_cmd  g remain
+    | "edit"::remain  -> edit_cmd g remain
     | "map"::remain   -> map_cmd g remain
     | "write"::remain -> write_cmd g remain
     | _ -> printf "error: command not recognized\n"; g (* in error, don't change anything *)

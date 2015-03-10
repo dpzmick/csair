@@ -12,3 +12,5 @@ val code : t -> string
 val population : t -> int
 val continent : t -> string
 val name : t -> string
+
+val set_field : t -> string -> string -> t option

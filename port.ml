@@ -5,6 +5,7 @@ open Core.Std
 
 module T = struct
     type t = Map_data_t.port
+
     let empty = {
         code = "";
         name = "";
@@ -41,3 +42,16 @@ let string_of_t p =
         (Coordinates.string_of_t p.coordinates)
         p.population
         p.region
+
+let set_code port code = Some { port with code = code }
+
+let set_field port field value =
+    match field with
+    | "code"        -> set_code port value
+    | "name"        -> None
+    | "country"     -> None
+    | "continent"   -> None
+    | "timezone"    -> None
+    | "coordinates" -> None
+    | "population"  -> None
+    | "region"      -> None
