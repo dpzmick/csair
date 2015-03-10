@@ -175,6 +175,13 @@ let test_route_add _ =
                 assert_contains_all actuals shoulds
     end
 
+let test_route_add_non_int _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "ASD") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance not a number"
+    | Some _ -> assert_failure "should have failed"
+
 
 (* TODO test directed vs undirected *)
 let suite =
@@ -192,7 +199,8 @@ let suite =
          "test_hubs">::                 test_hubs;
          "test_gcm">::                  test_gcm;
          "test_port_add">::             test_port_add;
-         "test_route_add">::            test_route_add]
+         "test_route_add">::            test_route_add;
+         "test_route_add_non_int">::    test_route_add_non_int]
 
 let () =
     run_test_tt_main suite

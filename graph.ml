@@ -21,7 +21,6 @@ module Edit = struct
     let route_add source dest dist = RouteAdd (source,dest,dist)
 end
 
-(* TODO expand type with error reporting *)
 module EditResult = struct
     type 'a t = ('a option * string option)
 
@@ -29,6 +28,11 @@ module EditResult = struct
     let fail s = (None, Some s)
 
     let new_graph (g, _) = g
+
+    let failure_reason (_, s) =
+        match s with
+        | None    -> ""
+        | Some s -> s
 end
 
 let port_for_code ports_to_routes str =
@@ -99,6 +103,13 @@ let add_port g code =
     | false -> EditResult.create (Some (add_all_ports g [new_port]))
     | true  -> EditResult.fail "port already added"
 
+let add_route g source dest dist_string =
+    try
+        let dist = int_of_string dist_string in
+        EditResult.fail "oops"
+    with
+    | Failure "int_of_string" -> EditResult.fail "distance not a number"
+
 let edit g edit =
     let open Edit in
     match edit with
@@ -107,4 +118,4 @@ let edit g edit =
     | PortAdd code                      -> add_port g code
     | RouteEdit (source,dest,new_dist)  -> EditResult.create None
     | RouteDelete (source,dest)         -> EditResult.create None
-    | RouteAdd (source,dest,dist)       -> EditResult.create None
+    | RouteAdd (source,dest,dist)       -> add_route g source dest dist
