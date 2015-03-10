@@ -23,9 +23,12 @@ end
 
 (* TODO expand type with error reporting *)
 module EditResult = struct
-    type 'a t = 'a option
-    let create v = v
-    let new_graph t = t
+    type 'a t = ('a option * string option)
+
+    let create v = (v, None)
+    let fail s = (None, Some s)
+
+    let new_graph (g, _) = g
 end
 
 let port_for_code ports_to_routes str =
@@ -90,8 +93,18 @@ let all_routes ports_to_routes =
         ~init:[]
         ~f:(fun ~key:port ~data:routes acc -> acc @ routes)
 
+let add_port g code =
+    let new_port = Port.default_of_code code in
+    match List.exists (all_ports g) ~f:(fun p1 -> String.equal (Port.code p1) code) with
+    | false -> EditResult.create (Some (add_all_ports g [new_port]))
+    | true  -> EditResult.fail "port already added"
+
 let edit g edit =
     let open Edit in
     match edit with
-    | PortEdit (code,field,value) -> EditResult.create None
-    | PortDelete code             -> EditResult.create None
+    | PortEdit (code,field,value)       -> EditResult.create None
+    | PortDelete code                   -> EditResult.create None
+    | PortAdd code                      -> add_port g code
+    | RouteEdit (source,dest,new_dist)  -> EditResult.create None
+    | RouteDelete (source,dest)         -> EditResult.create None
+    | RouteAdd (source,dest)            -> EditResult.create None

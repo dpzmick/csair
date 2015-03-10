@@ -14,6 +14,7 @@ end
 module EditResult : sig
     type 'a t
     val create : 'a option -> 'a t
+    val fail : string -> 'a t
     val new_graph : 'a t -> 'a option
 end
 

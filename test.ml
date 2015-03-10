@@ -18,18 +18,18 @@ let assert_contains_all shoulds actuals =
         List.iter ~f:(fun s -> assert_equal true (List.exists shoulds ~f:(fun a -> a = s))) actuals;
     end
 
-let always_pass test_ctxt =
+let always_pass _ =
     assert_equal true true
 
 (* check if all of the elements in the dataset are in the generated list of ports *)
-let test_all_ports test_ctxt =
+let test_all_ports _ =
     let g = Graph.t_of_dataset mini_data in
     let shoulds = mini_data.metros in
     let actuals = Graph.all_ports g in
     assert_contains_all shoulds actuals
 
 (* check that if I query a port by three letter value I get what I wanted *)
-let test_port_for_code test_ctxt =
+let test_port_for_code _ =
     let g = Graph.t_of_dataset mini_data in
     let p = Graph.port_for_code g "SCL" in
     match p with
@@ -47,7 +47,7 @@ let test_port_for_code test_ctxt =
     end
 
 (* Test to see if I can get everywhere you can fly from this city *)
-let test_routes_from_port test_ctxt =
+let test_routes_from_port _ =
     let should = ["LIM"; "MEX"] in
     let g = Graph.t_of_dataset mini_data in
     let p = Graph.port_for_code g "SCL" in
@@ -60,7 +60,7 @@ let test_routes_from_port test_ctxt =
             assert_contains_all should codes
 
 (* Test to see if I can get everywhere you can fly from this city (directed case) *)
-let test_routes_from_port_directed test_ctxt =
+let test_routes_from_port_directed _ =
     let should = ["LIM"] in
     let g = Graph.t_of_dataset directed_data in
     let p = Graph.port_for_code g "SCL" in
@@ -72,30 +72,30 @@ let test_routes_from_port_directed test_ctxt =
             let codes = List.map ~f:Port.code ports in
             assert_contains_all should codes
 
-let test_longest test_ctxt =
+let test_longest _ =
     let g = Graph.t_of_dataset mini_data in
     match (Graph_analytics.longest_path g) with
     | None    -> assert_failure "Not found"
     | Some r -> assert_equal (Route.distance r) 9982
 
-let test_shortest test_ctxt =
+let test_shortest _ =
     let g = Graph.t_of_dataset mini_data in
     match (Graph_analytics.shortest_path g) with
     | None    -> assert_failure "Not found"
     | Some r -> assert_equal (Route.distance r) 1235
 
-let test_pop_stats test_ctxt =
+let test_pop_stats _ =
     let g = Graph.t_of_dataset mini_data in
     begin
         assert_equal 6000000 (Graph_analytics.smallest_pop g);
         assert_equal 23400000 (Graph_analytics.largest_pop g);
     end
 
-let test_average_pop test_ctxt =
+let test_average_pop _ =
     let g = Graph.t_of_dataset mini_data in
     assert_equal (cmp_float (Graph_analytics.average_population g) 12816666.6667) true
 
-let test_continent_thing test_ctxt =
+let test_continent_thing _ =
     let aux cont shoulds actuals =
         let names = List.Assoc.find_exn shoulds cont in
         match List.Assoc.find actuals cont with
@@ -111,21 +111,39 @@ let test_continent_thing test_ctxt =
         aux "South America" shoulds actuals;
     end
 
-let test_hubs test_ctxt =
+let test_hubs _ =
     let shoulds = ["SCL";"LIM";"MEX"] in (* TODO generate better test data *)
     let g = Graph.t_of_dataset mini_data in
     let hubs = Graph_analytics.hubs g in
     match hubs with
     | None -> assert_failure "no hubs found"
-    | Some (d, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
+    | Some (_, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
 
-(* NOTE: adding both directions to get the initial heading and stuff for both *)
-let test_gcm test_ctxt =
+let test_gcm _ =
     let should = "http://www.gcmap.com/mapui?P=SCL-MEX%2C+SCL-LIM%2C+MEX-SCL%2C+MEX-LIM%2C+LIM-MEX%2C+LIM-SCL&MS=wls&DU=mi" in
     let g = Graph.t_of_dataset mini_data in
     let gcm = Gcm_data.from g in
     let gcm_res = Gcm_data.string_of_t gcm in
     assert_equal should gcm_res
+
+let test_port_add _ =
+    let g = Graph.t_of_dataset mini_data in
+    (* try to add port with existing code *)
+    begin
+        let g_fail = Graph.edit g (Graph.Edit.port_add "SCL") in
+        match (Graph.EditResult.new_graph g_fail) with
+        | None   -> assert_equal true true
+        | Some _ -> assert_failure "should have failed"
+    end;
+    begin
+        let g_sucess = Graph.edit g (Graph.Edit.port_add "ASD") in
+        match (Graph.EditResult.new_graph g_sucess) with
+        | None    -> assert_failure "should have added successfully"
+        | Some gg ->
+                let shoulds = ["SCL"; "MEX"; "LIM"; "ASD"] in
+                let actuals = List.map (Graph.all_ports gg) ~f:Port.code in
+                assert_contains_all shoulds actuals
+    end
 
 let suite =
     "suite">:::
@@ -140,7 +158,8 @@ let suite =
          "test_average_pop">::          test_average_pop;
          "test_continent_thing">::      test_continent_thing;
          "test_hubs">::                 test_hubs;
-         "test_gcm">::                  test_gcm]
+         "test_gcm">::                  test_gcm;
+         "test_port_add">::             test_port_add]
 
 let () =
     run_test_tt_main suite
