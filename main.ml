@@ -92,25 +92,28 @@ let query_cmd g cmd =
     end;
     g (* "return" the same graph *)
 
+let generic_port_edit g res_fun =
+    match (Graph.EditResult.new_graph (res_fun ())) with
+    | None -> printf "error doing update\n"; g
+    | Some gg -> gg
+
 let edit_port_cmd g cmd =
-    let aux code field remain = begin
-        printf "setting %s to %s for %s\n" field remain code;
-        let res = Graph.edit g (Graph.Edit.port_edit code field remain) in
-        match (Graph.EditResult.new_graph res) with
-        | None    -> (printf "error doing update\n"; g)
-        | Some gg -> gg
-    end in
+    let aux code field value () = Graph.edit g (Graph.Edit.port_edit code field value) in
     match cmd with
+    | code::field::value::[] -> generic_port_edit g (aux code field value)
     | _::[]                   -> (printf "command error: edit code field new_val\n"; g)
-    | code::field::remain::[] -> aux code field remain
     | _                       -> (printf "command error: edit code field new_val\n"; g)
 
 let edit_routes_cmd g cmd = printf "edit a route\n"; g
 
 let edit_cmd g cmd =
     match cmd with
-    | "port"::remain -> edit_port_cmd g remain
-    | "routes"::remain -> edit_routes_cmd g remain
+    | "port"::"modify"::remain -> edit_port_cmd g remain
+    | "port"::"delete"::remain -> edit_port_cmd g remain
+    | "port"::"add"::remain -> edit_port_cmd g remain
+    | "route"::"modify"::remain -> edit_routes_cmd g remain
+    | "route"::"delete"::remain -> edit_routes_cmd g remain
+    | "route"::"add"::remain -> edit_routes_cmd g remain
     | _ -> printf "command error: invalid edit command\n"; g
 
 let map_cmd g cmd =
