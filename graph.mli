@@ -1,5 +1,13 @@
 open Core.Std
 
+module Edit : sig
+    type t
+end
+
+module EditResult : sig
+    type t
+end
+
 type t
 
 val empty : unit -> t
@@ -10,4 +18,4 @@ val routes_from_port: t -> Port.t -> Route.t list
 val all_ports : t -> Port.t list
 val all_routes : t -> Route.t list
 
-val edit_port : t -> string -> string -> string -> t option
+val edit : t -> Edit.t -> EditResult.t

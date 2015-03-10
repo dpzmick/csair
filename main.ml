@@ -5,6 +5,12 @@ open Sys
 (**
  * A highly imperative repl for querying and modifying the graph data
  * TODO this is literally abusive pls do something different
+ *
+ * ideas for editing (that aren't this, to give better errors)
+ * -> create "edit" type (and query type)
+ *      -> same as transactional thing in chess (make module submodule of graph and stuff)
+ * -> How to pass everything though the graph with out being gross??
+ *      -> if using above, then can just do match over type of edit in graph and behave appropriately
  **)
 
 let list_all_cities g =
@@ -89,7 +95,8 @@ let query_cmd g cmd =
 let edit_port_cmd g cmd =
     let aux code field remain = begin
         printf "setting %s to %s for %s\n" field remain code;
-        let res = Graph.edit_port g code field remain in
+        (* let res = Graph.edit_port g code field remain in *)
+        let res = None in
         match res with
         | None    -> (printf "error doing update\n"; g)
         | Some gg -> gg

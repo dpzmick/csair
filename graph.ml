@@ -1,7 +1,21 @@
 open Core.Std
 include Map_data_t
 
-type t = Route.t list Port.Map.t
+module T = struct
+    type t = Route.t list Port.Map.t
+end
+
+module Edit = struct
+    type t =
+        | PortEdit of (string * string * string)
+        | RouteEdit of int
+end
+
+module EditResult = struct
+    type t = T.t option
+end
+
+include T
 
 let port_for_code ports_to_routes str =
     let ports = Map.keys ports_to_routes in
@@ -65,6 +79,8 @@ let all_routes ports_to_routes =
         ~init:[]
         ~f:(fun ~key:port ~data:routes acc -> acc @ routes)
 
-
-let edit_port ports_to_routes code field value = None
+let edit g edit =
+    let open Edit in
+    match edit with
+    | PortEdit (code,field,value) -> None
 
