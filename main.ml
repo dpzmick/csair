@@ -4,6 +4,7 @@ open Sys
 
 (**
  * A highly imperative repl for querying and modifying the graph data
+ * TODO this is literally abusive pls do something different
  **)
 
 let list_all_cities g =
