@@ -92,28 +92,58 @@ let query_cmd g cmd =
     end;
     g (* "return" the same graph *)
 
-let generic_port_edit g res_fun =
+let generic_edit g res_fun =
     match (Graph.EditResult.new_graph (res_fun ())) with
     | None -> printf "error doing update\n"; g
     | Some gg -> gg
 
-let edit_port_cmd g cmd =
+let modify_port_cmd g cmd =
     let aux code field value () = Graph.edit g (Graph.Edit.port_edit code field value) in
     match cmd with
-    | code::field::value::[] -> generic_port_edit g (aux code field value)
-    | _::[]                   -> (printf "command error: edit code field new_val\n"; g)
-    | _                       -> (printf "command error: edit code field new_val\n"; g)
+    | code::field::value::[]  -> generic_edit g (aux code field value)
+    | _::[]                   -> (printf "command error: need code field new_val\n"; g)
+    | _                       -> (printf "command error: need code field new_val\n"; g)
 
-let edit_routes_cmd g cmd = printf "edit a route\n"; g
+let delete_port_cmd g cmd =
+    let aux code () = Graph.edit g (Graph.Edit.port_delete code) in
+    match cmd with
+    | code::[] -> generic_edit g (aux code)
+    | _        -> (printf "command error: need code\n"; g)
+
+let add_port_cmd g cmd =
+    let aux code () = Graph.edit g (Graph.Edit.port_add code) in
+    match cmd with
+    | code::[] -> generic_edit g (aux code)
+    | _        -> (printf "command error: need code\n"; g)
+
+let modify_route_cmd g cmd =
+    let aux source dest new_dist () = Graph.edit g (Graph.Edit.route_edit source dest new_dist) in
+    match cmd with
+    | source::dest::new_dist::[]  -> generic_edit g (aux source dest new_dist)
+    | _::[]                       -> (printf "command error: need source, dest, and new distance\n"; g)
+    | _                           -> (printf "command error: need source, dest, and new distance\n"; g)
+
+let delete_route_cmd g cmd =
+    let aux source dest () = Graph.edit g (Graph.Edit.route_delete source dest) in
+    match cmd with
+    | source::dest::[] -> generic_edit g (aux source dest)
+    | _                 -> (printf "command error: need source and dest\n"; g)
+
+let add_route_cmd g cmd =
+    let aux source dest () = Graph.edit g (Graph.Edit.route_add source dest) in
+    match cmd with
+    | source::dest::[] -> generic_edit g (aux source dest)
+    | _                -> (printf "command error: need source and dest\n"; g)
+
 
 let edit_cmd g cmd =
     match cmd with
-    | "port"::"modify"::remain -> edit_port_cmd g remain
-    | "port"::"delete"::remain -> edit_port_cmd g remain
-    | "port"::"add"::remain -> edit_port_cmd g remain
-    | "route"::"modify"::remain -> edit_routes_cmd g remain
-    | "route"::"delete"::remain -> edit_routes_cmd g remain
-    | "route"::"add"::remain -> edit_routes_cmd g remain
+    | "port"::"modify"::remain -> modify_port_cmd g remain
+    | "port"::"delete"::remain -> delete_port_cmd g remain
+    | "port"::"add"::remain -> add_port_cmd g remain
+    | "route"::"modify"::remain -> modify_route_cmd g remain
+    | "route"::"delete"::remain -> delete_route_cmd g remain
+    | "route"::"add"::remain -> add_route_cmd g remain
     | _ -> printf "command error: invalid edit command\n"; g
 
 let map_cmd g cmd =

@@ -4,6 +4,11 @@ module Edit : sig
     type t
     val port_edit : string -> string -> string -> t
     val port_delete : string -> t
+    val port_add : string -> t
+
+    val route_edit : string -> string -> string -> t
+    val route_delete : string -> string -> t
+    val route_add : string -> string -> t
 end
 
 module EditResult : sig

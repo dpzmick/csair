@@ -5,15 +5,20 @@ type t = Route.t list Port.Map.t
 
 module Edit = struct
     type t =
-        | PortEdit of (string * string * string)
-        | PortDelete of string
-        | PortAdd of int
-        | RouteEdit of int
-        | RouteDelete of int
-        | RouteAdd of int
+        | PortEdit    of (string * string * string)
+        | PortDelete  of string
+        | PortAdd     of string
+        | RouteEdit   of (string * string * string)
+        | RouteDelete of (string*string)
+        | RouteAdd    of (string*string)
 
     let port_edit code field value = PortEdit (code,field,value)
     let port_delete code = PortDelete code
+    let port_add code = PortAdd code
+
+    let route_edit source dest new_dist = RouteEdit (source,dest,new_dist)
+    let route_delete source dest = RouteDelete (source,dest)
+    let route_add source dest = RouteAdd (source,dest)
 end
 
 (* TODO expand type with error reporting *)
