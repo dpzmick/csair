@@ -120,7 +120,10 @@ let add_route g source dest dist_string =
                         match dest_port with
                         | None    -> EditResult.fail "dest doesn't exist"
                         | Some dp -> (* now we can actually add the route *)
-                                EditResult.fail "oops"
+                                let new_route = Route.create sp dp dist in
+                                let curr = Map.find_exn g sp in (* already checked if it was in there *)
+                                let nmap = Map.add g ~key:sp ~data:(new_route::curr) in
+                                EditResult.create (Some nmap)
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 

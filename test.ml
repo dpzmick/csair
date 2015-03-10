@@ -173,13 +173,13 @@ let test_route_add _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.route_add "LIM" "SCL" "100") in
     match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_failure "should not have failed"
-    | Some _ ->
+    | None    -> assert_failure "should not have failed"
+    | Some gg ->
             (* NOTE: remember that mini_data is not directed *)
             (* NOTE: but, the add route only adds one direction *)
             let shoulds = [("SCL", 2453); ("MEX", 1235); ("SCL", 100)] in (* (code,distance) of reachable *)
-            let actuals = (Graph.routes_from_port g (Option.value_exn (Graph.port_for_code g "LIM"))) in
-            let actuals = List.map actuals ~f:(fun r -> (Port.code (Route.from_port r), Route.distance r)) in
+            let actuals = (Graph.routes_from_port gg (Option.value_exn (Graph.port_for_code gg "LIM"))) in
+            let actuals = List.map actuals ~f:(fun r -> (Port.code (Route.to_port r), Route.distance r)) in
             assert_contains_all actuals shoulds
 
 let test_route_add_non_int _ =
