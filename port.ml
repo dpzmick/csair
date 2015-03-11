@@ -29,6 +29,7 @@ include Comparable.Make(T)
 
 let code       p = p.code
 let name       p = p.name
+let timezone   p = p.timezone
 let population p = p.population
 let continent  p = p.continent
 
