@@ -98,9 +98,11 @@ let generic_edit g res_fun =
     | Some gg -> gg
 
 let modify_port_cmd g cmd =
-    let aux code field value () = Graph.edit g (Graph.Edit.port_edit code field value) in
+    let aux code field value () = Graph.edit g (Graph.Edit.port_edit ~code ~field ~value) in
     match cmd with
-    | code::field::value::[]  -> generic_edit g (aux code field value)
+    | code::field::value1::values ->
+            let value = List.fold values ~init:value1 ~f:(fun acc el -> String.concat ~sep:" " [acc;el]) in
+            generic_edit g (aux code field value)
     | _::[]                   -> (printf "command error: need code field new_val\n"; g)
     | _                       -> (printf "command error: need code field new_val\n"; g)
 
@@ -117,7 +119,8 @@ let add_port_cmd g cmd =
     | _        -> (printf "command error: need code\n"; g)
 
 let modify_route_cmd g cmd =
-    let aux source dest new_dist () = Graph.edit g (Graph.Edit.route_edit source dest new_dist) in
+    let aux from_port to_port new_dist () =
+        Graph.edit g (Graph.Edit.route_edit ~from_port ~to_port ~new_dist) in
     match cmd with
     | source::dest::new_dist::[]  -> generic_edit g (aux source dest new_dist)
     | _::[]                       -> (printf "command error: need source, dest, and new distance\n"; g)
