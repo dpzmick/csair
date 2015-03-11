@@ -93,8 +93,9 @@ let query_cmd g cmd =
     g (* "return" the same graph *)
 
 let generic_edit g res_fun =
-    match (Graph.EditResult.new_graph (res_fun ())) with
-    | None -> printf "error doing update\n"; g
+    let res = res_fun () in
+    match Graph.EditResult.new_graph res with
+    | None -> printf "error doing update: %s\n" (Graph.EditResult.failure_reason res); g
     | Some gg -> gg
 
 let modify_port_cmd g cmd =
