@@ -119,13 +119,6 @@ let test_hubs _ =
     | None -> assert_failure "no hubs found"
     | Some (_, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
 
-let test_gcm _ =
-    let should = "http://www.gcmap.com/mapui?P=SCL-MEX%2C+SCL-LIM%2C+MEX-SCL%2C+MEX-LIM%2C+LIM-MEX%2C+LIM-SCL&MS=wls&DU=mi" in
-    let g = Graph.t_of_dataset mini_data in
-    let gcm = Gcm_data.from g in
-    let gcm_res = Gcm_data.string_of_t gcm in
-    assert_equal should gcm_res
-
 let test_port_add _ =
     let g = Graph.t_of_dataset mini_data in
     (* try to add port with existing code *)
@@ -271,7 +264,7 @@ let test_route_edit_not_int _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"LIM" ~new_dist:"lolol") in
     match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "end does not exist" (Graph.EditResult.failure_reason g_fail)
+    | None   -> assert_equal "new distance must be an integer" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
 
 let test_route_edit_dne_route _ =
@@ -309,7 +302,6 @@ let suite =
          "test_average_pop">::          test_average_pop;
          "test_continent_thing">::      test_continent_thing;
          "test_hubs">::                 test_hubs;
-         "test_gcm">::                  test_gcm;
          "test_port_add">::             test_port_add;
          "test_route_add_same_place">:: test_route_add_same_place;
          "test_route_add_dne_src">::    test_route_add_dne_src;
