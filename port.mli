@@ -10,6 +10,7 @@ val default_of_code : string -> t
 val string_of_t : t -> string
 
 val code : t -> string
-val population : t -> int
-val continent : t -> string
 val name : t -> string
+val population : t -> int
+val timezone : t -> float
+val continent : t -> string

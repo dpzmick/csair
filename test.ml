@@ -203,6 +203,33 @@ let test_route_add_zero _ =
     | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance must be greater than 0"
     | Some _ -> assert_failure "should have failed"
 
+let test_port_edit_string _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_success = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"name" ~value:"new name") in
+    match (Graph.EditResult.new_graph g_success) with
+    | None    -> assert_failure "should have succeeded"
+    | Some gg ->
+            let p = Option.value_exn (Graph.port_for_code g "SCL") in
+            assert_equal (Port.name p) "new name"
+
+let test_port_edit_tz_err _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"not a float") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal "need a floating point number" (Graph.EditResult.failure_reason g_fail)
+    | Some _  -> assert_failure "should have failed to edit"
+
+let test_port_edit_tz_succ _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1.5") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_failure "should not have failed to edit"
+    | Some gg ->
+            let p = Option.value_exn (Graph.port_for_code g "SCL") in
+            let tz = Port.timezone p in
+            assert_equal tz 1.5
+
+
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -224,7 +251,10 @@ let suite =
          "test_route_add">::            test_route_add;
          "test_route_add_non_int">::    test_route_add_non_int;
          "test_route_add_negative">::   test_route_add_negative;
-         "test_route_add_zero">::       test_route_add_zero]
+         "test_route_add_zero">::       test_route_add_zero;
+         "test_port_edit_string">::     test_port_edit_string;
+         "test_port_edit_tz_err">::     test_port_edit_tz_err;
+         "test_port_edit_tz_succ">::    test_port_edit_tz_succ]
 
 let () =
     run_test_tt_main suite

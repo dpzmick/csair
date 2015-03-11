@@ -2,7 +2,7 @@ open Core.Std
 
 module Edit : sig
     type t
-    val port_edit : string -> string -> string -> t
+    val port_edit : code:string -> field:string -> value:string -> t
     val port_delete : string -> t
     val port_add : string -> t
 
