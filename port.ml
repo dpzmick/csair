@@ -1,7 +1,5 @@
-open Sexplib.Std
 open Map_data_t
 open Core.Std
-
 
 module T = struct
     type t = Map_data_t.port
@@ -45,3 +43,15 @@ let string_of_t p =
         p.region
 
 let default_of_code code = {empty with code = code}
+
+let modify_old p ~field ~value =
+    match field with
+    | "code"       -> {p with code = value}
+    | "name"       -> {p with name = value}
+    | "country"    -> {p with country = value}
+    | "continent"  -> {p with continent = value}
+    | "timezone"   -> (try {p with timezone = (Float.of_string value)} with
+                      | Invalid_argument _ -> raise (Invalid_argument "float"))
+    | "population" -> {p with population = (int_of_string value)}
+    | "region"     -> {p with region = (int_of_string value)}
+    | _            -> raise Not_found

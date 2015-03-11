@@ -209,25 +209,49 @@ let test_port_edit_string _ =
     match (Graph.EditResult.new_graph g_success) with
     | None    -> assert_failure "should have succeeded"
     | Some gg ->
-            let p = Option.value_exn (Graph.port_for_code g "SCL") in
+            let p = Option.value_exn (Graph.port_for_code gg "SCL") in
             assert_equal (Port.name p) "new name"
 
 let test_port_edit_tz_err _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"not a float") in
     match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal "need a floating point number" (Graph.EditResult.failure_reason g_fail)
+    | None    -> assert_equal "need floating point number" (Graph.EditResult.failure_reason g_fail)
     | Some _  -> assert_failure "should have failed to edit"
 
-let test_port_edit_tz_succ _ =
+let test_port_edit_dne _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"DNE" ~field:"timezone" ~value:"1.0") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal "port does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _  -> assert_failure "should have failed to edit"
+
+let test_port_edit_tz_succ1 _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1.5") in
     match (Graph.EditResult.new_graph g_fail) with
     | None    -> assert_failure "should not have failed to edit"
     | Some gg ->
-            let p = Option.value_exn (Graph.port_for_code g "SCL") in
+            let p = Option.value_exn (Graph.port_for_code gg "SCL") in
             let tz = Port.timezone p in
             assert_equal tz 1.5
+
+let test_port_edit_tz_succ2 _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_failure "should not have failed to edit"
+    | Some gg ->
+            let p = Option.value_exn (Graph.port_for_code gg "SCL") in
+            let tz = Port.timezone p in
+            assert_equal tz 1.0
+
+let test_port_edit_no_field _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"DNE" ~value:"1") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_equal "field does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _ -> assert_failure "should have failed to edit"
 
 
 let suite =
@@ -254,7 +278,9 @@ let suite =
          "test_route_add_zero">::       test_route_add_zero;
          "test_port_edit_string">::     test_port_edit_string;
          "test_port_edit_tz_err">::     test_port_edit_tz_err;
-         "test_port_edit_tz_succ">::    test_port_edit_tz_succ]
+         "test_port_edit_tz_succ1">::   test_port_edit_tz_succ1;
+         "test_port_edit_tz_succ2">::   test_port_edit_tz_succ2;
+         "test_port_edit_no_field">::   test_port_edit_no_field]
 
 let () =
     run_test_tt_main suite
