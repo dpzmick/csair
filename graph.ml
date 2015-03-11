@@ -123,8 +123,40 @@ let add_port g code =
     | false -> EditResult.create (add_all_ports g [new_port])
     | true  -> EditResult.fail "port already added"
 
+let edit_route g ~from_code ~to_code ~new_dist =
+    let after_checks new_dist_int sp dp r =
+        let curr_routes = Map.find_exn g sp in
+        let without_routes = List.drop_while curr_routes ~f:(fun e -> Route.equals e r) in
+        EditResult.fail "not implemented"
+    in
+    try
+        let new_dist = int_of_string new_dist in
+        let old_start = port_for_code g from_code in
+        match old_start with
+        | None           -> EditResult.fail "start does not exist"
+        | Some old_start ->
+                let old_end = port_for_code g to_code in
+                match old_end with
+                | None         -> EditResult.fail "end does not exist"
+                | Some old_end ->
+                        let route = List.find (all_routes g) ~f:(fun r ->
+                            let s = (Port.code (Route.from_port r)) in
+                            let r = (Port.code (Route.to_port r)) in
+                            (String.equal s from_code) && (String.equal r to_code))
+                        in match route with
+                        | None       -> EditResult.fail "route does not exist"
+                        | Some route -> after_checks new_dist old_start old_end route
+    with
+    | Failure "int_of_string" -> EditResult.fail "new distance must be an integer"
+
 (* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
+    let after_checks dist sp dp =
+        let new_route = Route.create sp dp dist in
+        let curr = Map.find_exn g sp in (* already checked if it was in there *)
+        let nmap = Map.add g ~key:sp ~data:(new_route::curr) in
+        EditResult.create nmap
+    in
     try
         let dist = int_of_string dist_string in
         if dist <= 0
@@ -140,20 +172,16 @@ let add_route g source dest dist_string =
                         let dest_port = (port_for_code g dest) in
                         match dest_port with
                         | None    -> EditResult.fail "dest doesn't exist"
-                        | Some dp -> (* now we can actually add the route *)
-                                let new_route = Route.create sp dp dist in
-                                let curr = Map.find_exn g sp in (* already checked if it was in there *)
-                                let nmap = Map.add g ~key:sp ~data:(new_route::curr) in
-                                EditResult.create nmap
+                        | Some dp -> after_checks dist sp dp
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 
 let edit g edit =
     let open Edit in
     match edit with
-    | PortEdit (code,field,value)       -> edit_port g ~code ~field ~value
-    | PortDelete code                   -> EditResult.fail "not implemented"
-    | PortAdd code                      -> add_port g code
-    | RouteEdit (source,dest,new_dist)  -> EditResult.fail "not implemented"
-    | RouteDelete (source,dest)         -> EditResult.fail "not implemented"
-    | RouteAdd (source,dest,dist)       -> add_route g source dest dist
+    | PortEdit (code,field,value)            -> edit_port g ~code ~field ~value
+    | PortDelete code                        -> EditResult.fail "not implemented"
+    | PortAdd code                           -> add_port g code
+    | RouteEdit (from_code,to_code,new_dist) -> edit_route g ~from_code ~to_code ~new_dist
+    | RouteDelete (source,dest)              -> EditResult.fail "not implemented"
+    | RouteAdd (source,dest,dist)            -> add_route g source dest dist

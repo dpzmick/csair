@@ -21,3 +21,10 @@ let string_of_t coord =
     match coord.w with
     | None -> s3
     | Some x -> sprintf "%sw: %d" s3 x
+
+let equal c1 c2 =
+    let l = (Option.equal Int.equal c1.n c2.n)::[] in
+    let l = (Option.equal Int.equal c1.s c2.s)::l in
+    let l = (Option.equal Int.equal c1.e c2.e)::l in
+    let l = (Option.equal Int.equal c1.w c2.w)::l in
+    List.fold l ~init:true ~f:(&&)
