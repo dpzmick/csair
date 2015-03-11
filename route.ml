@@ -18,6 +18,6 @@ let to_port   p = p.to_port
 let distance  p = p.distance
 
 let equal r1 r2 =
-    let ports = (Port.equal r1.from_port r2.from_port) && (Port.equal r2.to_port r2.from_port) in
+    let ports = (Port.equal r1.from_port r2.from_port) && (Port.equal r1.to_port r2.to_port) in
     let dists = r1.distance = r2.distance in
     ports && dists

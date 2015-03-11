@@ -126,7 +126,7 @@ let add_port g code =
 let edit_route g ~from_code ~to_code ~new_dist_string =
     let after_checks new_dist sp dp old_route =
         let curr_routes = Map.find_exn g sp in
-        let without_routes = List.drop_while curr_routes ~f:(fun e -> Route.equal e old_route) in
+        let without_routes = List.filter curr_routes ~f:(fun e -> not (Route.equal e old_route)) in
         let new_route = Route.create sp dp new_dist in
         let new_routes = new_route::without_routes in
         let without_map = Map.remove g sp in
@@ -144,8 +144,8 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
                 | Some old_end ->
                         let route = List.find (all_routes g) ~f:(fun r ->
                             let s = (Port.code (Route.from_port r)) in
-                            let r = (Port.code (Route.to_port r)) in
-                            (String.equal s from_code) && (String.equal r to_code))
+                            let e = (Port.code (Route.to_port r)) in
+                            (String.equal s from_code) && (String.equal e to_code))
                         in match route with
                         | None       -> EditResult.fail "route does not exist"
                         | Some route -> after_checks new_dist old_start old_end route
