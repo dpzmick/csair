@@ -8,4 +8,4 @@ val from_port : t -> Port.t
 val to_port : t -> Port.t
 val distance : t -> int
 
-val equals : t -> t -> bool
+val equal : t -> t -> bool

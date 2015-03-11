@@ -4,6 +4,7 @@ open Core.Std
 type t = Map_data_t.coordinate
 
 let empty = {n=None;s=None;e=None;w=None}
+let create ?(n = None) ?(s = None) ?(e = None) ?(w = None) () = {n;s;e;w}
 
 let string_of_t coord =
     let s1 = match coord.n with
@@ -28,3 +29,4 @@ let equal c1 c2 =
     let l = (Option.equal Int.equal c1.e c2.e)::l in
     let l = (Option.equal Int.equal c1.w c2.w)::l in
     List.fold l ~init:true ~f:(&&)
+

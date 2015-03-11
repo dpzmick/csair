@@ -21,6 +21,23 @@ let assert_contains_all shoulds actuals =
 let always_pass _ =
     assert_equal true true
 
+let test_coord_equal _ =
+    let c1 = Coordinates.create ~n:(Some 10) ~e:(Some 10) () in
+    let c2 = Coordinates.create ~n:(Some 10) ~e:(Some 10) () in
+    assert_equal true (Coordinates.equal c1 c2)
+
+let test_port_equal _ =
+    let p1 = Port.default_of_code "ASD" in
+    let p2 = Port.default_of_code "ASD" in
+    assert_equal true (Port.equal p1 p2)
+
+let test_route_equal _ =
+    let p1 = Port.default_of_code "ASD" in
+    let p2 = Port.default_of_code "ASD" in
+    let r1 = Route.create p2 p2 10 in
+    let r2 = Route.create p2 p2 10 in
+    assert_equal true (Route.equal r1 r2)
+
 (* check if all of the elements in the dataset are in the generated list of ports *)
 let test_all_ports _ =
     let g = Graph.t_of_dataset mini_data in
@@ -292,6 +309,9 @@ let test_route_edit_success _ =
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
+         "test_coord_equal">::          test_coord_equal;
+         "test_port_equal">::           test_port_equal;
+         "test_route_equal">::          test_route_equal;
          "all_ports">::                 test_all_ports;
          "port_for_code">::             test_port_for_code;
          "routes_from_port">::          test_routes_from_port;

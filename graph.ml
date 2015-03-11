@@ -123,14 +123,17 @@ let add_port g code =
     | false -> EditResult.create (add_all_ports g [new_port])
     | true  -> EditResult.fail "port already added"
 
-let edit_route g ~from_code ~to_code ~new_dist =
-    let after_checks new_dist_int sp dp r =
+let edit_route g ~from_code ~to_code ~new_dist_string =
+    let after_checks new_dist sp dp old_route =
         let curr_routes = Map.find_exn g sp in
-        let without_routes = List.drop_while curr_routes ~f:(fun e -> Route.equals e r) in
-        EditResult.fail "not implemented"
+        let without_routes = List.drop_while curr_routes ~f:(fun e -> Route.equal e old_route) in
+        let new_route = Route.create sp dp new_dist in
+        let new_routes = new_route::without_routes in
+        let without_map = Map.remove g sp in
+        EditResult.create (Map.add g ~key:sp ~data:new_routes)
     in
     try
-        let new_dist = int_of_string new_dist in
+        let new_dist = int_of_string new_dist_string in
         let old_start = port_for_code g from_code in
         match old_start with
         | None           -> EditResult.fail "start does not exist"
@@ -182,6 +185,6 @@ let edit g edit =
     | PortEdit (code,field,value)            -> edit_port g ~code ~field ~value
     | PortDelete code                        -> EditResult.fail "not implemented"
     | PortAdd code                           -> add_port g code
-    | RouteEdit (from_code,to_code,new_dist) -> edit_route g ~from_code ~to_code ~new_dist
+    | RouteEdit (from_code,to_code,new_dist) -> edit_route g ~from_code ~to_code ~new_dist_string:new_dist
     | RouteDelete (source,dest)              -> EditResult.fail "not implemented"
     | RouteAdd (source,dest,dist)            -> add_route g source dest dist
