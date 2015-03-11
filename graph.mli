@@ -6,7 +6,7 @@ module Edit : sig
     val port_delete : string -> t
     val port_add : string -> t
 
-    val route_edit : string -> string -> string -> t
+    val route_edit : from_port:string -> to_port:string -> new_dist:string -> t
     val route_delete : string -> string -> t
     val route_add : string -> string -> string -> t
 end

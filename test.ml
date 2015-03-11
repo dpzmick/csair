@@ -136,8 +136,8 @@ let test_port_add _ =
         | Some _ -> assert_failure "should have failed"
     end;
     begin
-        let g_sucess = Graph.edit g (Graph.Edit.port_add "ASD") in
-        match (Graph.EditResult.new_graph g_sucess) with
+        let g_success = Graph.edit g (Graph.Edit.port_add "ASD") in
+        match (Graph.EditResult.new_graph g_success) with
         | None    -> assert_failure "should have added successfully"
         | Some gg ->
                 let shoulds = ["SCL"; "MEX"; "LIM"; "ASD"] in
@@ -250,9 +250,51 @@ let test_port_edit_no_field _ =
     let g = Graph.t_of_dataset mini_data in
     let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"DNE" ~value:"1") in
     match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal "field does not exist" (Graph.EditResult.failure_reason g_fail)
+    | None   -> assert_equal "field does not exist" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
 
+let test_route_edit_dne_start _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"DNE" ~to_port:"SCL" ~new_dist:"100") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal "start does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _ -> assert_failure "should have failed to edit"
+
+let test_route_edit_dne_end _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"DNE" ~new_dist:"100") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal "end does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _ -> assert_failure "should have failed to edit"
+
+let test_route_edit_not_int _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"LIM" ~new_dist:"lolol") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal "end does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _ -> assert_failure "should have failed to edit"
+
+let test_route_edit_dne_route _ =
+    (* NOTE: loading the directed data for this test *)
+    let g = Graph.t_of_dataset directed_data in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"MEX" ~to_port:"LIM" ~new_dist:"100") in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal "route does not exist" (Graph.EditResult.failure_reason g_fail)
+    | Some _ -> assert_failure "should have failed to edit"
+
+let test_route_edit_success _ =
+    (* NOTE: loading the directed data for this test *)
+    let g = Graph.t_of_dataset directed_data in
+    let g_success = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"LIM" ~new_dist:"100") in
+    match (Graph.EditResult.new_graph g_success) with
+    | None    -> assert_failure "should not have failed to edit"
+    | Some gg ->
+            let shoulds = [("SCL","LIM",100);("LIM","MEX",1235);("MEX","SCL",9982)] in
+            let actuals = Graph.all_routes gg in
+            let actuals = List.map actuals ~f:(fun r ->
+                ((Port.code (Route.from_port r)), (Port.code (Route.to_port r)), (Route.distance r)))
+            in
+            assert_contains_all actuals shoulds
 
 let suite =
     "suite">:::
@@ -280,7 +322,12 @@ let suite =
          "test_port_edit_tz_err">::     test_port_edit_tz_err;
          "test_port_edit_tz_succ1">::   test_port_edit_tz_succ1;
          "test_port_edit_tz_succ2">::   test_port_edit_tz_succ2;
-         "test_port_edit_no_field">::   test_port_edit_no_field]
+         "test_port_edit_no_field">::   test_port_edit_no_field;
+         "test_route_edit_dne_start">:: test_route_edit_dne_start;
+         "test_route_edit_dne_end">::   test_route_edit_dne_end;
+         "test_route_edit_dne_route">:: test_route_edit_dne_route;
+         "test_route_edit_not_int">::   test_route_edit_not_int;
+         "test_route_edit_success">::   test_route_edit_success]
 
 let () =
     run_test_tt_main suite

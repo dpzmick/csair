@@ -16,7 +16,7 @@ module Edit = struct
     let port_delete code = PortDelete code
     let port_add code = PortAdd code
 
-    let route_edit source dest new_dist = RouteEdit (source,dest,new_dist)
+    let route_edit ~from_port ~to_port ~new_dist = RouteEdit (from_port,to_port,new_dist)
     let route_delete source dest = RouteDelete (source,dest)
     let route_add source dest dist = RouteAdd (source,dest,dist)
 end
