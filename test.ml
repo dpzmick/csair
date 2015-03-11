@@ -34,8 +34,8 @@ let test_port_equal _ =
 let test_route_equal _ =
     let p1 = Port.default_of_code "ASD" in
     let p2 = Port.default_of_code "ASD" in
-    let r1 = Route.create p2 p2 10 in
-    let r2 = Route.create p2 p2 10 in
+    let r1 = Route.create p1 p2 10 in
+    let r2 = Route.create p1 p2 10 in
     assert_equal true (Route.equal r1 r2)
 
 (* check if all of the elements in the dataset are in the generated list of ports *)
