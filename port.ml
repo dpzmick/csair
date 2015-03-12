@@ -54,14 +54,21 @@ let string_of_t p =
 
 let default_of_code code = {empty with code = code}
 
+let population_update p value =
+    let v = int_of_string value in
+    if (Int.(<) v 0)
+    then raise (Invalid_argument "negative")
+    else {p with population = v}
+
 let modify_old p ~field ~value =
     match field with
     | "code"       -> {p with code = value}
     | "name"       -> {p with name = value}
     | "country"    -> {p with country = value}
     | "continent"  -> {p with continent = value}
+
     | "timezone"   -> (try {p with timezone = (Float.of_string value)} with
                       | Invalid_argument _ -> raise (Invalid_argument "float"))
-    | "population" -> {p with population = (int_of_string value)}
+    | "population" -> population_update p value
     | "region"     -> {p with region = (int_of_string value)}
     | _            -> raise Not_found

@@ -116,9 +116,10 @@ let edit_port g ~code ~field ~value =
                         ~f:(fun r -> Route.create new_port (Route.to_port r) (Route.distance r)) in
                 EditResult.create (Map.add g ~key:new_port ~data:new_routes)
             with
-            | Failure "int_of_string"   -> EditResult.fail "need integer number"
-            | Invalid_argument "float"  -> EditResult.fail "need floating point number"
-            | Not_found                 -> EditResult.fail "field does not exist"
+            | Failure "int_of_string"     -> EditResult.fail "need integer number"
+            | Invalid_argument "float"    -> EditResult.fail "need floating point number"
+            | Invalid_argument "negative" -> EditResult.fail "number must be positive"
+            | Not_found                   -> EditResult.fail "field does not exist"
 
 let remove_port g code =
     let port_to_rm = (port_for_code g code) in
@@ -154,21 +155,25 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
     in
     try
         let new_dist = int_of_string new_dist_string in
-        let old_start = port_for_code g from_code in
-        match old_start with
-        | None           -> EditResult.fail "start port does not exist"
-        | Some old_start ->
-                let old_end = port_for_code g to_code in
-                match old_end with
-                | None         -> EditResult.fail "end port does not exist"
-                | Some old_end ->
-                        let route = List.find (all_routes g) ~f:(fun r ->
-                            let s = (Port.code (Route.from_port r)) in
-                            let e = (Port.code (Route.to_port r)) in
-                            (String.equal s from_code) && (String.equal e to_code))
-                        in match route with
-                        | None       -> EditResult.fail "route does not exist"
-                        | Some route -> after_checks new_dist old_start old_end route
+        if new_dist < 0
+        then
+            EditResult.fail "distance must be positive"
+        else
+            let old_start = port_for_code g from_code in
+            match old_start with
+            | None           -> EditResult.fail "start port does not exist"
+            | Some old_start ->
+                    let old_end = port_for_code g to_code in
+                    match old_end with
+                    | None         -> EditResult.fail "end port does not exist"
+                    | Some old_end ->
+                            let route = List.find (all_routes g) ~f:(fun r ->
+                                let s = (Port.code (Route.from_port r)) in
+                                let e = (Port.code (Route.to_port r)) in
+                                (String.equal s from_code) && (String.equal e to_code))
+                            in match route with
+                            | None       -> EditResult.fail "route does not exist"
+                            | Some route -> after_checks new_dist old_start old_end route
     with
     | Failure "int_of_string" -> EditResult.fail "new distance must be an integer"
 

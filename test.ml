@@ -230,6 +230,12 @@ let test_port_edit_string _ =
             let p = Option.value_exn (Graph.port_for_code gg "SCL") in
             assert_equal (Port.name p) "new name")
 
+let test_port_edit_negative _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"population" ~value:"-1")
+        ~expected_error:"number must be positive"
+
 let test_port_edit_tz_err _ =
     generic_edit_fail
         ~dataset:mini_data
@@ -375,7 +381,6 @@ let test_route_rm_multiple _ =
                 | Some _ -> assert_equal true true (* just let this go, we test this elsewhere *)
             end
 
-
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -406,6 +411,7 @@ let suite =
          "test_port_edit_tz_succ1">::   test_port_edit_tz_succ1;
          "test_port_edit_tz_succ2">::   test_port_edit_tz_succ2;
          "test_port_edit_no_field">::   test_port_edit_no_field;
+         "test_port_edit_negative">::   test_port_edit_negative;
          "test_route_exists">::         test_route_exists;
          "test_route_edit_dne_start">:: test_route_edit_dne_start;
          "test_route_edit_dne_end">::   test_route_edit_dne_end;
