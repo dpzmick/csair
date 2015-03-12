@@ -172,6 +172,12 @@ let test_route_add_same_place _ =
         ~edit:(Graph.Edit.route_add ~from_code:"ASD" ~to_code:"ASD" ~dist:"100")
         ~expected_error:"source and dest are the same port"
 
+let test_route_exists _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"MEX" ~to_code:"SCL" ~dist:"9982")
+        ~expected_error:"this route already exists"
+
 (* try to add a route with one of the places non-existent *)
 let test_route_add_dne_src _ =
     generic_edit_fail
@@ -329,6 +335,29 @@ let test_route_rm_end_dne _ =
         ~edit: (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"DNE" ~dist:"")
         ~expected_error:"end port does not exist"
 
+(* cant use generic dude for this :( *)
+let test_route_rm_multiple _ =
+    let g = Graph.t_of_dataset mini_data in
+    let e1 = Graph.edit g (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"10") in
+    match (Graph.EditResult.new_graph e1) with
+    | None    -> assert_failure "first edit should not have failed"
+    | Some gg ->
+            begin
+                let e2 = Graph.edit gg (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"") in
+                match (Graph.EditResult.new_graph e2) with
+                | None   -> assert_equal
+                                "multiple routes exist, need to specify a distance"
+                                (Graph.EditResult.failure_reason e2)
+                | Some _ -> assert_failure "edit should have failed"
+            end;
+            begin
+                let e2 = Graph.edit gg (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"10") in
+                match (Graph.EditResult.new_graph e2) with
+                | None   -> assert_failure "edit should have succeeded"
+                | Some _ -> assert_equal true true (* just let this go, we test this elsewhere *)
+            end
+
+
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -346,7 +375,7 @@ let suite =
          "test_continent_thing">::      test_continent_thing;
          "test_hubs">::                 test_hubs;
          "test_port_add">::             test_port_add;
-          "test_port_add_exists">::     test_port_add_exists;
+         "test_port_add_exists">::      test_port_add_exists;
          "test_route_add_same_place">:: test_route_add_same_place;
          "test_route_add_dne_src">::    test_route_add_dne_src;
          "test_route_add_dne_dest">::   test_route_add_dne_dest;
@@ -359,6 +388,7 @@ let suite =
          "test_port_edit_tz_succ1">::   test_port_edit_tz_succ1;
          "test_port_edit_tz_succ2">::   test_port_edit_tz_succ2;
          "test_port_edit_no_field">::   test_port_edit_no_field;
+         "test_route_exists">::         test_route_exists;
          "test_route_edit_dne_start">:: test_route_edit_dne_start;
          "test_route_edit_dne_end">::   test_route_edit_dne_end;
          "test_route_edit_dne_route">:: test_route_edit_dne_route;
@@ -367,7 +397,8 @@ let suite =
          "test_port_rm_dne">::          test_port_rm_dne;
          "test_port_rm_succ">::         test_port_rm_succ;
          "test_routes_rm_start_dne">::  test_route_rm_start_dne;
-         "test_routes_rm_end_dne">::    test_route_rm_end_dne]
+         "test_routes_rm_end_dne">::    test_route_rm_end_dne;
+         "test_route_rm_multiple">::    test_route_rm_multiple]
 
 let () =
     run_test_tt_main suite
