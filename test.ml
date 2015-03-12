@@ -265,21 +265,21 @@ let test_port_edit_no_field _ =
 
 let test_route_edit_dne_start _ =
     let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"DNE" ~to_port:"SCL" ~new_dist:"100") in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"DNE" ~to_code:"SCL" ~new_dist:"100") in
     match (Graph.EditResult.new_graph g_fail) with
     | None   -> assert_equal "start does not exist" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
 
 let test_route_edit_dne_end _ =
     let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"DNE" ~new_dist:"100") in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"DNE" ~new_dist:"100") in
     match (Graph.EditResult.new_graph g_fail) with
     | None   -> assert_equal "end does not exist" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
 
 let test_route_edit_not_int _ =
     let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"LIM" ~new_dist:"lolol") in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"lolol") in
     match (Graph.EditResult.new_graph g_fail) with
     | None   -> assert_equal "new distance must be an integer" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
@@ -287,7 +287,7 @@ let test_route_edit_not_int _ =
 let test_route_edit_dne_route _ =
     (* NOTE: loading the directed data for this test *)
     let g = Graph.t_of_dataset directed_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_port:"MEX" ~to_port:"LIM" ~new_dist:"100") in
+    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"MEX" ~to_code:"LIM" ~new_dist:"100") in
     match (Graph.EditResult.new_graph g_fail) with
     | None   -> assert_equal "route does not exist" (Graph.EditResult.failure_reason g_fail)
     | Some _ -> assert_failure "should have failed to edit"
@@ -295,7 +295,7 @@ let test_route_edit_dne_route _ =
 let test_route_edit_success _ =
     (* NOTE: loading the directed data for this test *)
     let g = Graph.t_of_dataset directed_data in
-    let g_success = Graph.edit g (Graph.Edit.route_edit ~from_port:"SCL" ~to_port:"LIM" ~new_dist:"100") in
+    let g_success = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"100") in
     match (Graph.EditResult.new_graph g_success) with
     | None    -> assert_failure "should not have failed to edit"
     | Some gg ->

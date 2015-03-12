@@ -120,18 +120,22 @@ let add_port_cmd g cmd =
     | _        -> (printf "command error: need code\n"; g)
 
 let modify_route_cmd g cmd =
-    let aux from_port to_port new_dist () =
-        Graph.edit g (Graph.Edit.route_edit ~from_port ~to_port ~new_dist) in
+    let aux from_code to_code new_dist () =
+        Graph.edit g (Graph.Edit.route_edit ~from_code ~to_code ~new_dist) in
     match cmd with
     | source::dest::new_dist::[]  -> generic_edit g (aux source dest new_dist)
     | _::[]                       -> (printf "command error: need source, dest, and new distance\n"; g)
     | _                           -> (printf "command error: need source, dest, and new distance\n"; g)
 
 let delete_route_cmd g cmd =
-    let aux source dest () = Graph.edit g (Graph.Edit.route_delete source dest) in
+    let aux1 from_code to_code () =
+        Graph.edit g (Graph.Edit.route_delete ~from_code ~to_code ~dist:"") in
+    let aux2 from_code to_code dist () =
+        Graph.edit g (Graph.Edit.route_delete ~from_code ~to_code ~dist) in
     match cmd with
-    | source::dest::[] -> generic_edit g (aux source dest)
-    | _                 -> (printf "command error: need source and dest\n"; g)
+    | source::dest::[]       -> generic_edit g (aux1 source dest)
+    | source::dest::dist::[] -> generic_edit g (aux2 source dest dist)
+    | _                      -> (printf "command error: need source and dest (and maybe a dist)\n"; g)
 
 let add_route_cmd g cmd =
     let aux source dest dist () = Graph.edit g (Graph.Edit.route_add source dest dist) in

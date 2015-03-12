@@ -9,16 +9,21 @@ module Edit = struct
         | PortDelete  of string
         | PortAdd     of string
         | RouteEdit   of (string * string * string)
-        | RouteDelete of (string * string)
+        | RouteDelete of (string * string * string option)
         | RouteAdd    of (string * string * string)
 
     let port_edit ~code ~field ~value = PortEdit (code,field,value)
     let port_delete code = PortDelete code
     let port_add code = PortAdd code
 
-    let route_edit ~from_port ~to_port ~new_dist = RouteEdit (from_port,to_port,new_dist)
-    let route_delete source dest = RouteDelete (source,dest)
-    let route_add source dest dist = RouteAdd (source,dest,dist)
+    let route_edit ~from_code ~to_code ~new_dist = RouteEdit (from_code, to_code, new_dist)
+
+    let route_delete ~from_code ~to_code ~dist =
+        match dist with
+        | "" -> RouteDelete (from_code, to_code, None)
+        | s  -> RouteDelete (from_code, to_code, Some s)
+
+    let route_add ~from_code ~to_code ~dist = RouteAdd (from_code, to_code, dist)
 end
 
 module EditResult = struct
@@ -169,6 +174,9 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
     with
     | Failure "int_of_string" -> EditResult.fail "new distance must be an integer"
 
+let remove_route g ~from_code ~to_code ~dist =
+    EditResult.fail "not yet implemented"
+
 (* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
     let after_checks dist sp dp =
@@ -203,5 +211,5 @@ let edit g edit =
     | PortDelete code                        -> remove_port g code
     | PortAdd code                           -> add_port g code
     | RouteEdit (from_code,to_code,new_dist) -> edit_route g ~from_code ~to_code ~new_dist_string:new_dist
-    | RouteDelete (source,dest)              -> EditResult.fail "not implemented"
+    | RouteDelete (from_code,to_code,dist)   -> remove_route g ~from_code ~to_code ~dist
     | RouteAdd (source,dest,dist)            -> add_route g source dest dist
