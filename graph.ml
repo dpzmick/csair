@@ -143,7 +143,7 @@ let add_port g code =
     let new_port = Port.default_of_code code in
     match List.exists (all_ports g) ~f:(fun p1 -> String.equal (Port.code p1) code) with
     | false -> EditResult.create (add_all_ports g [new_port])
-    | true  -> EditResult.fail "port already added"
+    | true  -> EditResult.fail "port already exists"
 
 let edit_route g ~from_code ~to_code ~new_dist_string =
     let after_checks new_dist sp dp old_route =
@@ -158,11 +158,11 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
         let new_dist = int_of_string new_dist_string in
         let old_start = port_for_code g from_code in
         match old_start with
-        | None           -> EditResult.fail "start does not exist"
+        | None           -> EditResult.fail "start port does not exist"
         | Some old_start ->
                 let old_end = port_for_code g to_code in
                 match old_end with
-                | None         -> EditResult.fail "end does not exist"
+                | None         -> EditResult.fail "end port does not exist"
                 | Some old_end ->
                         let route = List.find (all_routes g) ~f:(fun r ->
                             let s = (Port.code (Route.from_port r)) in

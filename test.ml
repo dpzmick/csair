@@ -136,196 +136,198 @@ let test_hubs _ =
     | None -> assert_failure "no hubs found"
     | Some (_, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
 
+let generic_edit_fail ~dataset ~edit ~expected_error =
+    let g = Graph.t_of_dataset dataset in
+    let g_fail = (Graph.edit g edit) in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) expected_error
+    | Some _ -> assert_failure "edit should have failed"
+
+let generic_edit_success ~dataset ~edit ~after =
+    let g = Graph.t_of_dataset dataset in
+    let g_success = Graph.edit g edit in
+    match (Graph.EditResult.new_graph g_success) with
+    | None    -> assert_failure "should have edited successfully"
+    | Some gg -> (after gg)
+
 let test_port_add _ =
-    let g = Graph.t_of_dataset mini_data in
-    (* try to add port with existing code *)
-    begin
-        let g_fail = Graph.edit g (Graph.Edit.port_add "SCL") in
-        match (Graph.EditResult.new_graph g_fail) with
-        | None   -> assert_equal true true
-        | Some _ -> assert_failure "should have failed"
-    end;
-    begin
-        let g_success = Graph.edit g (Graph.Edit.port_add "ASD") in
-        match (Graph.EditResult.new_graph g_success) with
-        | None    -> assert_failure "should have added successfully"
-        | Some gg ->
-                let shoulds = ["SCL"; "MEX"; "LIM"; "ASD"] in
-                let actuals = List.map (Graph.all_ports gg) ~f:Port.code in
-                assert_contains_all shoulds actuals
-    end
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_add "ASD")
+        ~after:(fun gg ->
+            let shoulds = ["SCL"; "MEX"; "LIM"; "ASD"] in
+            let actuals = List.map (Graph.all_ports gg) ~f:Port.code in
+            assert_contains_all shoulds actuals)
+
+let test_port_add_exists _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_add "SCL")
+        ~expected_error:"port already exists"
 
 (* try to add a route between a place and itself *)
 let test_route_add_same_place _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "ASD" "ASD" "100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "source and dest are the same port"
-    | Some _ -> assert_failure "Should not have been able to add the route"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"ASD" ~to_code:"ASD" ~dist:"100")
+        ~expected_error:"source and dest are the same port"
 
 (* try to add a route with one of the places non-existent *)
 let test_route_add_dne_src _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "ASD" "SCL" "100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "source doesn't exist"
-    | Some _ -> assert_failure "Should not have been able to add the route"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"ASD" ~to_code:"SCL" ~dist:"100")
+        ~expected_error:"source doesn't exist"
 
 let test_route_add_dne_dest _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "ASD" "100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "dest doesn't exist"
-    | Some _ -> assert_failure "Should not have been able to add the route"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"SCL" ~to_code:"ASD" ~dist:"100")
+        ~expected_error:"dest doesn't exist"
 
+(* NOTE: remember that mini_data is not directed *)
+(* NOTE: but, the add route only adds one direction *)
 (* should work *)
 let test_route_add _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "LIM" "SCL" "100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_failure "should not have failed"
-    | Some gg ->
-            (* NOTE: remember that mini_data is not directed *)
-            (* NOTE: but, the add route only adds one direction *)
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"LIM" ~to_code:"SCL" ~dist:"100")
+        ~after:(fun gg ->
             let shoulds = [("SCL", 2453); ("MEX", 1235); ("SCL", 100)] in (* (code,distance) of reachable *)
             let actuals = (Graph.routes_from_port gg (Option.value_exn (Graph.port_for_code gg "LIM"))) in
             let actuals = List.map actuals ~f:(fun r -> (Port.code (Route.to_port r), Route.distance r)) in
-            assert_contains_all actuals shoulds
+            assert_contains_all actuals shoulds)
 
 let test_route_add_non_int _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "ASD") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance not a number"
-    | Some _ -> assert_failure "should have failed"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"SCL" ~to_code:"MEX" ~dist:"ASD")
+        ~expected_error:"distance not a number"
 
 let test_route_add_negative _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "-1") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance must be greater than 0"
-    | Some _ -> assert_failure "should have failed"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"SCL" ~to_code:"MEX" ~dist:"-1")
+        ~expected_error:"distance must be greater than 0"
 
 let test_route_add_zero _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_add "SCL" "MEX" "0") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal (Graph.EditResult.failure_reason g_fail) "distance must be greater than 0"
-    | Some _ -> assert_failure "should have failed"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_add ~from_code:"SCL" ~to_code:"MEX" ~dist:"0")
+        ~expected_error:"distance must be greater than 0"
 
 let test_port_edit_string _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_success = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"name" ~value:"new name") in
-    match (Graph.EditResult.new_graph g_success) with
-    | None    -> assert_failure "should have succeeded"
-    | Some gg ->
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"name" ~value:"new name")
+        ~after:(fun gg ->
             let p = Option.value_exn (Graph.port_for_code gg "SCL") in
-            assert_equal (Port.name p) "new name"
+            assert_equal (Port.name p) "new name")
 
 let test_port_edit_tz_err _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"not a float") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal "need floating point number" (Graph.EditResult.failure_reason g_fail)
-    | Some _  -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"not a float")
+        ~expected_error:"need floating point number"
 
 let test_port_edit_dne _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"DNE" ~field:"timezone" ~value:"1.0") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_equal "port does not exist" (Graph.EditResult.failure_reason g_fail)
-    | Some _  -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"DNE" ~field:"timezone" ~value:"1.0")
+        ~expected_error:"port does not exist"
 
 let test_port_edit_tz_succ1 _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1.5") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_failure "should not have failed to edit"
-    | Some gg ->
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1.5")
+        ~after:(fun gg ->
             let p = Option.value_exn (Graph.port_for_code gg "SCL") in
             let tz = Port.timezone p in
-            assert_equal tz 1.5
+            assert_equal tz 1.5)
 
 let test_port_edit_tz_succ2 _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_failure "should not have failed to edit"
-    | Some gg ->
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"timezone" ~value:"1")
+        ~after:(fun gg ->
             let p = Option.value_exn (Graph.port_for_code gg "SCL") in
             let tz = Port.timezone p in
-            assert_equal tz 1.0
+            assert_equal tz 1.0)
 
 let test_port_edit_no_field _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.port_edit ~code:"SCL" ~field:"DNE" ~value:"1") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "field does not exist" (Graph.EditResult.failure_reason g_fail)
-    | Some _ -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_edit ~code:"SCL" ~field:"DNE" ~value:"1")
+        ~expected_error:"field does not exist"
 
 let test_route_edit_dne_start _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"DNE" ~to_code:"SCL" ~new_dist:"100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "start does not exist" (Graph.EditResult.failure_reason g_fail)
-    | Some _ -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"DNE" ~to_code:"SCL" ~new_dist:"100")
+        ~expected_error:"start port does not exist"
 
 let test_route_edit_dne_end _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"DNE" ~new_dist:"100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "end does not exist" (Graph.EditResult.failure_reason g_fail)
-    | Some _ -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"DNE" ~new_dist:"100")
+        ~expected_error:"end port does not exist"
 
 let test_route_edit_not_int _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"lolol") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "new distance must be an integer" (Graph.EditResult.failure_reason g_fail)
-    | Some _ -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"lolol")
+        ~expected_error:"new distance must be an integer"
 
+(* NOTE: loading the directed data for this test *)
 let test_route_edit_dne_route _ =
-    (* NOTE: loading the directed data for this test *)
-    let g = Graph.t_of_dataset directed_data in
-    let g_fail = Graph.edit g (Graph.Edit.route_edit ~from_code:"MEX" ~to_code:"LIM" ~new_dist:"100") in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal "route does not exist" (Graph.EditResult.failure_reason g_fail)
-    | Some _ -> assert_failure "should have failed to edit"
+    generic_edit_fail
+        ~dataset:directed_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"MEX" ~to_code:"LIM" ~new_dist:"100")
+        ~expected_error:"route does not exist"
 
+(* NOTE: loading the directed data for this test *)
 let test_route_edit_success _ =
-    (* NOTE: loading the directed data for this test *)
-    let g = Graph.t_of_dataset directed_data in
-    let g_success = Graph.edit g (Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"100") in
-    match (Graph.EditResult.new_graph g_success) with
-    | None    -> assert_failure "should not have failed to edit"
-    | Some gg ->
+    generic_edit_success
+        ~dataset:directed_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"100")
+        ~after:(fun gg ->
             let shoulds = [("SCL","LIM",100);("LIM","MEX",1235);("MEX","SCL",9982)] in
             let actuals = Graph.all_routes gg in
             let actuals = List.map actuals ~f:(fun r ->
                 ((Port.code (Route.from_port r)), (Port.code (Route.to_port r)), (Route.distance r)))
             in
-            assert_contains_all actuals shoulds
+            assert_contains_all actuals shoulds)
 
 let test_port_rm_dne _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = (Graph.edit g (Graph.Edit.port_delete "DNE")) in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "port does not exist"
-    | Some _ -> assert_failure "should have failed"
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_delete "DNE")
+        ~expected_error:"port does not exist"
 
 let test_port_rm_succ _ =
-    let g = Graph.t_of_dataset mini_data in
-    let g_fail = (Graph.edit g (Graph.Edit.port_delete "SCL")) in
-    match (Graph.EditResult.new_graph g_fail) with
-    | None    -> assert_failure "should not have failed"
-    | Some gg ->
+    generic_edit_success
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.port_delete "SCL")
+        ~after:(fun gg ->
             let shoulds_ports = ["LIM";"MEX"] in
             let actuals_ports = List.map (Graph.all_ports gg) ~f:Port.code in
             assert_contains_all shoulds_ports actuals_ports;
             List.iter (Graph.all_routes gg)
                 ~f:(fun r ->
                     assert_equal false (String.equal (Port.code (Route.from_port r)) "SCL");
-                    assert_equal false (String.equal (Port.code (Route.to_port   r)) "SCL"))
+                    assert_equal false (String.equal (Port.code (Route.to_port   r)) "SCL")))
+
+let test_route_rm_start_dne _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_delete ~from_code:"DNE" ~to_code:"SCL" ~dist:"")
+        ~expected_error:"start port does not exist"
+
+let test_route_rm_end_dne _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit: (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"DNE" ~dist:"")
+        ~expected_error:"end port does not exist"
 
 let suite =
     "suite">:::
@@ -344,6 +346,7 @@ let suite =
          "test_continent_thing">::      test_continent_thing;
          "test_hubs">::                 test_hubs;
          "test_port_add">::             test_port_add;
+          "test_port_add_exists">::     test_port_add_exists;
          "test_route_add_same_place">:: test_route_add_same_place;
          "test_route_add_dne_src">::    test_route_add_dne_src;
          "test_route_add_dne_dest">::   test_route_add_dne_dest;
@@ -362,7 +365,9 @@ let suite =
          "test_route_edit_not_int">::   test_route_edit_not_int;
          "test_route_edit_success">::   test_route_edit_success;
          "test_port_rm_dne">::          test_port_rm_dne;
-         "test_port_rm_succ">::         test_port_rm_succ]
+         "test_port_rm_succ">::         test_port_rm_succ;
+         "test_routes_rm_start_dne">::  test_route_rm_start_dne;
+         "test_routes_rm_end_dne">::    test_route_rm_end_dne]
 
 let () =
     run_test_tt_main suite
