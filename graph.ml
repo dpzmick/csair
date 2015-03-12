@@ -105,7 +105,7 @@ let t_of_dataset {metros; routes; directed;_} =
 let dataset_of_t g =
     let metros = (all_ports g) in
     let routes = List.map (all_routes g) ~f:Route.to_json_route in
-    {routes;metros;directed = false; data_source = []}
+    {routes;metros;directed = true; data_source = []}
 
 (**********************************************************************
 *                        editing starts here                         *
