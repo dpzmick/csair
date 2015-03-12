@@ -335,6 +335,18 @@ let test_route_rm_end_dne _ =
         ~edit: (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"DNE" ~dist:"")
         ~expected_error:"end port does not exist"
 
+let test_route_rm_dne1 _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"10")
+        ~expected_error:"route does not exist"
+
+let test_route_rm_dne2 _ =
+    generic_edit_fail
+        ~dataset:directed_data
+        ~edit:(Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"")
+        ~expected_error:"route does not exist"
+
 (* cant use generic dude for this :( *)
 let test_route_rm_multiple _ =
     let g = Graph.t_of_dataset mini_data in
@@ -398,6 +410,8 @@ let suite =
          "test_port_rm_succ">::         test_port_rm_succ;
          "test_routes_rm_start_dne">::  test_route_rm_start_dne;
          "test_routes_rm_end_dne">::    test_route_rm_end_dne;
+         "test_route_rm_dne1">::         test_route_rm_dne1;
+         "test_route_rm_dne2">::         test_route_rm_dne2;
          "test_route_rm_multiple">::    test_route_rm_multiple]
 
 let () =
