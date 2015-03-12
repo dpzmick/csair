@@ -100,7 +100,7 @@ let routes_from_port ports_to_routes p =
 let all_routes ports_to_routes =
     Map.fold ports_to_routes
         ~init:[]
-        ~f:(fun ~key:port ~data:routes acc -> acc @ routes)
+        ~f:(fun ~key:_ ~data:routes acc -> acc @ routes)
 
 let edit_port g ~code ~field ~value =
     (* TODO this is kind of gross but I'm not sure how else to do it *)
@@ -111,11 +111,10 @@ let edit_port g ~code ~field ~value =
             try
                 (* TODO make a better graph, should refactor so these edits are underling graph agnostic *)
                 let curr_routes = Map.find_exn g op in
-                let without = Map.remove g op in
                 let new_port = Port.modify_old op ~field ~value in
                 let new_routes = List.map curr_routes
                         ~f:(fun r -> Route.create new_port (Route.to_port r) (Route.distance r)) in
-                EditResult.create (Map.add without ~key:new_port ~data:new_routes)
+                EditResult.create (Map.add g ~key:new_port ~data:new_routes)
             with
             | Failure "int_of_string"   -> EditResult.fail "need integer number"
             | Invalid_argument "float"  -> EditResult.fail "need floating point number"
@@ -151,7 +150,6 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
         let without_routes = List.filter curr_routes ~f:(fun e -> not (Route.equal e old_route)) in
         let new_route = Route.create sp dp new_dist in
         let new_routes = new_route::without_routes in
-        let without_map = Map.remove g sp in
         EditResult.create (Map.add g ~key:sp ~data:new_routes)
     in
     try
@@ -179,8 +177,7 @@ let remove_route g ~from_code ~to_code ~dist =
 
 (* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
-    let after_checks dist sp dp =
-        let new_route = Route.create sp dp dist in
+    let after_checks sp new_route =
         let curr = Map.find_exn g sp in (* already checked if it was in there *)
         let nmap = Map.add g ~key:sp ~data:(new_route::curr) in
         EditResult.create nmap
@@ -200,7 +197,11 @@ let add_route g source dest dist_string =
                         let dest_port = (port_for_code g dest) in
                         match dest_port with
                         | None    -> EditResult.fail "dest doesn't exist"
-                        | Some dp -> after_checks dist sp dp
+                        | Some dp ->
+                                let new_route = Route.create sp dp dist in
+                                match List.find (all_routes g) ~f:(Route.equal new_route) with
+                                | None   -> after_checks sp new_route
+                                | Some _ -> EditResult.fail "this route already exists"
     with
     | Failure "int_of_string" -> EditResult.fail "distance not a number"
 
