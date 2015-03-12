@@ -208,7 +208,7 @@ let test_route_add_non_int _ =
     generic_edit_fail
         ~dataset:mini_data
         ~edit:(Graph.Edit.route_add ~from_code:"SCL" ~to_code:"MEX" ~dist:"ASD")
-        ~expected_error:"distance not a number"
+        ~expected_error:"distance not an integer"
 
 let test_route_add_negative _ =
     generic_edit_fail
@@ -347,10 +347,16 @@ let test_route_rm_dne2 _ =
         ~edit:(Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"")
         ~expected_error:"route does not exist"
 
+let test_route_rm_nonint _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_delete ~from_code:"MEX" ~to_code:"SCL" ~dist:"1.5")
+        ~expected_error:"distance not an integer"
+
 (* cant use generic dude for this :( *)
 let test_route_rm_multiple _ =
     let g = Graph.t_of_dataset mini_data in
-    let e1 = Graph.edit g (Graph.Edit.route_delete ~from_code:"SCL" ~to_code:"MEX" ~dist:"10") in
+    let e1 = Graph.edit g (Graph.Edit.route_add ~from_code:"SCL" ~to_code:"MEX" ~dist:"10") in
     match (Graph.EditResult.new_graph e1) with
     | None    -> assert_failure "first edit should not have failed"
     | Some gg ->
@@ -410,8 +416,9 @@ let suite =
          "test_port_rm_succ">::         test_port_rm_succ;
          "test_routes_rm_start_dne">::  test_route_rm_start_dne;
          "test_routes_rm_end_dne">::    test_route_rm_end_dne;
-         "test_route_rm_dne1">::         test_route_rm_dne1;
-         "test_route_rm_dne2">::         test_route_rm_dne2;
+         "test_route_rm_dne1">::        test_route_rm_dne1;
+         "test_route_rm_dne2">::        test_route_rm_dne2;
+         "test_route_rm_nonint">::      test_route_rm_nonint;
          "test_route_rm_multiple">::    test_route_rm_multiple]
 
 let () =

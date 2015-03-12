@@ -173,7 +173,43 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
     | Failure "int_of_string" -> EditResult.fail "new distance must be an integer"
 
 let remove_route g ~from_code ~to_code ~dist =
-    EditResult.fail "not yet implemented"
+    let do_removal sp r =
+        let curr = Map.find_exn g sp in
+        let without = List.filter curr ~f:(fun rr -> (not (Route.equal r rr))) in
+        EditResult.create (Map.add g ~key:sp ~data:without)
+    in
+    let dist_given dist sp dp =
+        try
+            let dist = int_of_string dist in
+            let my_route = Route.create sp dp dist in
+            let r = List.find (all_routes g) ~f:(Route.equal my_route) in
+            match r with
+            | None   -> EditResult.fail "route does not exist"
+            | Some r -> do_removal sp r
+        with
+        | Failure "int_of_string" -> EditResult.fail "distance not an integer"
+
+    in
+    let no_dist_given sp dp =
+        let rs = List.filter (all_routes g) ~f:(fun r ->
+            let a = (Port.equal sp (Route.from_port r)) in
+            let b = (Port.equal dp (Route.to_port r)) in
+            a && b)
+        in match (List.length rs) with
+        | 0 -> EditResult.fail "route does not exist"
+        | 1 -> do_removal sp (List.hd_exn rs)
+        | _ -> EditResult.fail "multiple routes exist, need to specify a distance"
+
+    in
+    match (port_for_code g from_code) with
+    | None    -> EditResult.fail "start port does not exist"
+    | Some sp ->
+            match (port_for_code g to_code) with
+            | None    -> EditResult.fail "end port does not exist"
+            | Some dp ->
+                match dist with
+                | None      -> no_dist_given sp dp
+                | Some dist -> dist_given dist sp dp
 
 (* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
@@ -190,12 +226,10 @@ let add_route g source dest dist_string =
             if (String.equal source dest)
             then EditResult.fail "source and dest are the same port"
             else
-                let source_port = (port_for_code g source) in
-                match source_port with
+                match (port_for_code g source) with
                 | None    -> EditResult.fail "source doesn't exist"
                 | Some sp ->
-                        let dest_port = (port_for_code g dest) in
-                        match dest_port with
+                        match (port_for_code g dest) with
                         | None    -> EditResult.fail "dest doesn't exist"
                         | Some dp ->
                                 let new_route = Route.create sp dp dist in
@@ -203,7 +237,7 @@ let add_route g source dest dist_string =
                                 | None   -> after_checks sp new_route
                                 | Some _ -> EditResult.fail "this route already exists"
     with
-    | Failure "int_of_string" -> EditResult.fail "distance not a number"
+    | Failure "int_of_string" -> EditResult.fail "distance not an integer"
 
 let edit g edit =
     let open Edit in
