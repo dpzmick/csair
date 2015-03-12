@@ -116,6 +116,23 @@ let edit_port g ~code ~field ~value =
             | Invalid_argument "float"  -> EditResult.fail "need floating point number"
             | Not_found                 -> EditResult.fail "field does not exist"
 
+let remove_port g code =
+    let port_to_rm = (port_for_code g code) in
+    match port_to_rm with
+    | None   -> EditResult.fail "port does not exist"
+    | Some p ->
+            let g = Map.remove g p in (* do this first to speed things up *)
+            let affected_routes = List.filter (all_routes g) ~f:(fun r ->
+                (Port.equal p (Route.from_port r)) || (Port.equal p (Route.to_port r)))
+            in
+            EditResult.create
+                (List.fold affected_routes
+                    ~init:g
+                    ~f:(fun acc r ->
+                        let start = (Route.from_port r) in
+                        let curr_routes = Map.find_exn acc start in
+                        let without = List.filter curr_routes ~f:(fun rr -> (not (Route.equal r rr))) in
+                        Map.add (Map.remove acc start) ~key:start ~data:without))
 
 let add_port g code =
     let new_port = Port.default_of_code code in
@@ -183,7 +200,7 @@ let edit g edit =
     let open Edit in
     match edit with
     | PortEdit (code,field,value)            -> edit_port g ~code ~field ~value
-    | PortDelete code                        -> EditResult.fail "not implemented"
+    | PortDelete code                        -> remove_port g code
     | PortAdd code                           -> add_port g code
     | RouteEdit (from_code,to_code,new_dist) -> edit_route g ~from_code ~to_code ~new_dist_string:new_dist
     | RouteDelete (source,dest)              -> EditResult.fail "not implemented"

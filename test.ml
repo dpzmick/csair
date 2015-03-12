@@ -306,6 +306,27 @@ let test_route_edit_success _ =
             in
             assert_contains_all actuals shoulds
 
+let test_port_rm_dne _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = (Graph.edit g (Graph.Edit.port_delete "DNE")) in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None   -> assert_equal (Graph.EditResult.failure_reason g_fail) "port does not exist"
+    | Some _ -> assert_failure "should have failed"
+
+let test_port_rm_succ _ =
+    let g = Graph.t_of_dataset mini_data in
+    let g_fail = (Graph.edit g (Graph.Edit.port_delete "SCL")) in
+    match (Graph.EditResult.new_graph g_fail) with
+    | None    -> assert_failure "should not have failed"
+    | Some gg ->
+            let shoulds_ports = ["LIM";"MEX"] in
+            let actuals_ports = List.map (Graph.all_ports gg) ~f:Port.code in
+            assert_contains_all shoulds_ports actuals_ports;
+            List.iter (Graph.all_routes gg)
+                ~f:(fun r ->
+                    assert_equal false (String.equal (Port.code (Route.from_port r)) "SCL");
+                    assert_equal false (String.equal (Port.code (Route.to_port   r)) "SCL"))
+
 let suite =
     "suite">:::
         ["always_pass">::               always_pass;
@@ -339,7 +360,9 @@ let suite =
          "test_route_edit_dne_end">::   test_route_edit_dne_end;
          "test_route_edit_dne_route">:: test_route_edit_dne_route;
          "test_route_edit_not_int">::   test_route_edit_not_int;
-         "test_route_edit_success">::   test_route_edit_success]
+         "test_route_edit_success">::   test_route_edit_success;
+         "test_port_rm_dne">::          test_port_rm_dne;
+         "test_port_rm_succ">::         test_port_rm_succ]
 
 let () =
     run_test_tt_main suite
