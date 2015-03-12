@@ -18,42 +18,43 @@ let add_all_ports g ports =
         ~init:g
         ~f:(fun map port -> Map.add map ~key:port ~data:[])
 
-(** Adds all the routes, assumes all the routes start and end at ports already in the dictionary *)
-let add_all_routes g json_routes directed =
-    (* make a list of all the routes in the list of json_routes (make sure both directions exist) *)
-    let routes =
-        List.fold json_routes
-            ~init:[]
-            ~f:(fun acc json_route ->
-                let port_one = (Option.value_exn (port_for_code g (List.nth_exn (json_route.ports) 0))) in
-                let port_two = (Option.value_exn (port_for_code g (List.nth_exn (json_route.ports) 1))) in
-                let distance = json_route.distance in
-                let new_routes =
-                    match directed with
-                    | true  -> [Route.create port_one port_two distance]
-                    | false -> [Route.create port_one port_two distance; Route.create port_two port_one distance]
-                in
-                new_routes @ acc
-            )
-    in
-    (* Now we need to build up a new map with all of these routes in it *)
-    let new_map =
-        List.fold routes
-            ~init:g
-            ~f:(fun map route ->
-                match Map.find map (Route.from_port route) with
-                | None        -> Map.add map ~key:(Route.from_port route) ~data:[route]
-                | Some routes -> Map.add map ~key:(Route.from_port route) ~data:(route::routes))
-    in new_map
+let routify_json_route g json_route =
+    let from_port = (port_for_code g (List.nth_exn json_route.ports 0)) in
+    match from_port with
+    | None    -> None
+    | Some fp -> (* lol because this is functional*)
+            let to_port = (port_for_code g (List.nth_exn json_route.ports 1)) in
+            match to_port with
+            | None    -> None
+            | Some tp -> Some (Route.create fp tp json_route.distance)
 
-let empty () = Port.Map.empty
+let routify_json_route_backwards g json_route =
+    let from_port = (port_for_code g (List.nth_exn json_route.ports 1)) in
+    match from_port with
+    | None    -> None
+    | Some fp -> (* lol because this is functional*)
+            let to_port = (port_for_code g (List.nth_exn json_route.ports 0)) in
+            match to_port with
+            | None    -> None
+            | Some tp -> Some (Route.create fp tp json_route.distance)
+
+(** Adds all the routes, assumes all the routes start and end at ports already in the dictionary *)
+let add_all_routes g routes =
+    List.fold routes
+        ~init:g
+        ~f:(fun map route ->
+            match Map.find map (Route.from_port route) with
+            | None        -> Map.add map ~key:(Route.from_port route) ~data:[route]
+            | Some routes -> Map.add map ~key:(Route.from_port route) ~data:(route::routes))
+
+let empty = Port.Map.empty
 
 let all_ports ports_to_routes = Map.keys ports_to_routes
 
 let routes_from_port ports_to_routes p =
     let routes = Map.find ports_to_routes p in
     match routes with
-    | None -> failwith "what"
+    | None -> failwith "what" (* TODO *)
     | Some routes -> routes
 
 let all_routes ports_to_routes =
@@ -62,7 +63,17 @@ let all_routes ports_to_routes =
         ~f:(fun ~key:_ ~data:routes acc -> acc @ routes)
 
 let t_of_dataset {metros; routes; directed;_} =
-    add_all_routes (add_all_ports (empty ()) metros) routes directed
+    let first = (add_all_ports empty metros) in
+    let real_routes =
+        let aux f = List.map routes ~f:(fun j ->
+            match f first j with
+            | None   -> failwith "json is malformed"
+            | Some r -> r)
+        in let uncond = aux routify_json_route in
+        match directed with
+        | true  -> uncond
+        | false -> List.append uncond (aux routify_json_route_backwards)
+    in add_all_routes first real_routes
 
 (* TODO don't loose the data sources *)
 let dataset_of_t g =
