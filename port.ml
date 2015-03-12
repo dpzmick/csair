@@ -72,3 +72,4 @@ let modify_old p ~field ~value =
     | "population" -> population_update p value
     | "region"     -> {p with region = (int_of_string value)}
     | _            -> raise Not_found
+    (* TODO edit coordinates *)

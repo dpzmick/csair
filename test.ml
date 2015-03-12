@@ -290,6 +290,12 @@ let test_route_edit_not_int _ =
         ~edit:(Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"lolol")
         ~expected_error:"new distance must be an integer"
 
+let test_route_edit_negative _ =
+    generic_edit_fail
+        ~dataset:mini_data
+        ~edit:(Graph.Edit.route_edit ~from_code:"SCL" ~to_code:"LIM" ~new_dist:"-1")
+        ~expected_error:"new distance must be positive"
+
 (* NOTE: loading the directed data for this test *)
 let test_route_edit_dne_route _ =
     generic_edit_fail
@@ -417,6 +423,7 @@ let suite =
          "test_route_edit_dne_end">::   test_route_edit_dne_end;
          "test_route_edit_dne_route">:: test_route_edit_dne_route;
          "test_route_edit_not_int">::   test_route_edit_not_int;
+         "test_route_edit_negative">::  test_route_edit_negative;
          "test_route_edit_success">::   test_route_edit_success;
          "test_port_rm_dne">::          test_port_rm_dne;
          "test_port_rm_succ">::         test_port_rm_succ;

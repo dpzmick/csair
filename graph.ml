@@ -157,7 +157,7 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
         let new_dist = int_of_string new_dist_string in
         if new_dist < 0
         then
-            EditResult.fail "distance must be positive"
+            EditResult.fail "new distance must be positive"
         else
             let old_start = port_for_code g from_code in
             match old_start with
