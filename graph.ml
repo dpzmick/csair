@@ -86,9 +86,6 @@ let add_all_routes g json_routes directed =
 
 let empty () = Port.Map.empty
 
-let t_of_dataset {metros; routes; directed;_} =
-    add_all_routes (add_all_ports (empty ()) metros) routes directed
-
 let all_ports ports_to_routes = Map.keys ports_to_routes
 
 let routes_from_port ports_to_routes p =
@@ -102,6 +99,17 @@ let all_routes ports_to_routes =
         ~init:[]
         ~f:(fun ~key:_ ~data:routes acc -> acc @ routes)
 
+let t_of_dataset {metros; routes; directed;_} =
+    add_all_routes (add_all_ports (empty ()) metros) routes directed
+
+let dataset_of_t g =
+    let metros = (all_ports g) in
+    let routes = List.map (all_routes g) ~f:Route.to_json_route in
+    {routes;metros;directed = false; data_source = []}
+
+(**********************************************************************
+*                        editing starts here                         *
+**********************************************************************)
 let edit_port g ~code ~field ~value =
     (* TODO this is kind of gross but I'm not sure how else to do it *)
     let old_port = port_for_code g code in

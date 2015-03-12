@@ -166,7 +166,9 @@ let map_cmd g cmd =
 let write_cmd g cmd =
     begin
         match cmd with
-        | filename::[] -> printf "TODO write data to %s\n" filename
+        | filename::[] ->
+                let dset = (Graph.dataset_of_t g) in
+                Ag_util.Biniou.to_file Map_data_j.write_dataset filename dset
         | _::_::_      -> printf "command error: I'm not sure what you are trying to do man\n"
         | []           -> printf "command error: write command needs a filename\n"
     end;
@@ -181,7 +183,7 @@ let command g cmd =
     | _ -> printf "error: command not recognized\n"; g (* in error, don't change anything *)
 
 let () =
-    let g = Graph.t_of_dataset (Map_data_j.dataset_of_string (In_channel.read_all "map_data.json")) in
+    let g = Graph.t_of_dataset (Ag_util.Json.from_file Map_data_j.read_dataset "map_data.json") in
     let g = ref g in
     let cont = ref true in
     while !cont do
