@@ -1,25 +1,5 @@
 open Core.Std
 
-module Edit : sig
-    type t
-    val port_edit : code:string -> field:string -> value:string -> t
-    val port_delete : string -> t
-    val port_add : string -> t
-
-    val route_edit : from_code:string -> to_code:string -> new_dist:string -> t
-    val route_delete : from_code:string -> to_code:string -> dist:string -> t
-    val route_add : from_code:string -> to_code:string -> dist:string -> t
-end
-
-module EditResult : sig
-    type 'a t
-    val create : 'a -> 'a t
-    val fail : string -> 'a t
-
-    val new_graph : 'a t -> 'a option
-    val failure_reason : 'a t -> string
-end
-
 type t
 
 val empty : unit -> t
@@ -28,7 +8,16 @@ val dataset_of_t : t -> Map_data_t.dataset
 
 val port_for_code : t -> string -> Port.t option
 val routes_from_port: t -> Port.t -> Route.t list
+
+val add_all_routes : t -> Map_data_t.json_route list -> bool -> t
+val add_all_ports : t -> Port.t list -> t
+
 val all_ports : t -> Port.t list
 val all_routes : t -> Route.t list
 
-val edit : t -> Edit.t -> t EditResult.t
+val routes_from : t -> Port.t -> Route.t list option
+val routes_from_exn : t -> Port.t -> Route.t list
+
+val set_routes_from : t -> port:Port.t -> routes:Route.t list -> t
+
+val without_port_no_cleanup : t -> Port.t -> t

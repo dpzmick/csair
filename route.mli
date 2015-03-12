@@ -1,3 +1,6 @@
+open Port
+open Map_data_t
+
 type t
 
 (** creates a new t with from port, to port, and distance *)
