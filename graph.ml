@@ -80,8 +80,7 @@ let add_all_routes g json_routes directed =
             ~f:(fun map route ->
                 match Map.find map (Route.from_port route) with
                 | None        -> Map.add map ~key:(Route.from_port route) ~data:[route]
-                | Some routes -> Map.add map ~key:(Route.from_port route) ~data:(route::routes)
-            )
+                | Some routes -> Map.add map ~key:(Route.from_port route) ~data:(route::routes))
     in new_map
 
 let empty () = Port.Map.empty
@@ -102,10 +101,18 @@ let all_routes ports_to_routes =
 let t_of_dataset {metros; routes; directed;_} =
     add_all_routes (add_all_ports (empty ()) metros) routes directed
 
+(* TODO don't loose the data sources *)
 let dataset_of_t g =
     let metros = (all_ports g) in
     let routes = List.map (all_routes g) ~f:Route.to_json_route in
     {routes;metros;directed = true; data_source = []}
+
+let routes_from     g port = Map.find     g port
+let routes_from_exn g port = Map.find_exn g port
+
+let set_routes_from g ~port ~routes = Map.add g ~key:port ~data:routes
+
+let without_port_no_cleanup g ~port = Map.remove g port
 
 (**********************************************************************
 *                        editing starts here                         *
@@ -118,11 +125,11 @@ let edit_port g ~code ~field ~value =
     | Some op ->
             try
                 (* TODO make a better graph, should refactor so these edits are underling graph agnostic *)
-                let curr_routes = Map.find_exn g op in
+                let curr_routes = routes_from_exn g op in
                 let new_port = Port.modify_old op ~field ~value in
                 let new_routes = List.map curr_routes
                         ~f:(fun r -> Route.create new_port (Route.to_port r) (Route.distance r)) in
-                EditResult.create (Map.add g ~key:new_port ~data:new_routes)
+                EditResult.create (set_routes_from g ~port:new_port ~routes:new_routes)
             with
             | Failure "int_of_string"     -> EditResult.fail "need integer number"
             | Invalid_argument "float"    -> EditResult.fail "need floating point number"
@@ -134,7 +141,7 @@ let remove_port g code =
     match port_to_rm with
     | None   -> EditResult.fail "port does not exist"
     | Some p ->
-            let g = Map.remove g p in (* do this first to speed things up *)
+            let g = without_port_no_cleanup g p in (* do this first *)
             let affected_routes = List.filter (all_routes g) ~f:(fun r ->
                 (Port.equal p (Route.from_port r)) || (Port.equal p (Route.to_port r)))
             in
@@ -143,9 +150,9 @@ let remove_port g code =
                     ~init:g
                     ~f:(fun acc r ->
                         let start = (Route.from_port r) in
-                        let curr_routes = Map.find_exn acc start in
+                        let curr_routes = routes_from_exn acc start in
                         let without = List.filter curr_routes ~f:(fun rr -> (not (Route.equal r rr))) in
-                        Map.add acc ~key:start ~data:without))
+                        set_routes_from acc ~port:start ~routes:without))
 
 let add_port g code =
     let new_port = Port.default_of_code code in
@@ -155,11 +162,11 @@ let add_port g code =
 
 let edit_route g ~from_code ~to_code ~new_dist_string =
     let after_checks new_dist sp dp old_route =
-        let curr_routes = Map.find_exn g sp in
+        let curr_routes = routes_from_exn g sp in
         let without_routes = List.filter curr_routes ~f:(fun e -> not (Route.equal e old_route)) in
         let new_route = Route.create sp dp new_dist in
         let new_routes = new_route::without_routes in
-        EditResult.create (Map.add g ~key:sp ~data:new_routes)
+        EditResult.create (set_routes_from g ~port:sp ~routes:new_routes)
     in
     try
         let new_dist = int_of_string new_dist_string in
@@ -187,9 +194,9 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
 
 let remove_route g ~from_code ~to_code ~dist =
     let do_removal sp r =
-        let curr = Map.find_exn g sp in
+        let curr = routes_from_exn g sp in
         let without = List.filter curr ~f:(fun rr -> (not (Route.equal r rr))) in
-        EditResult.create (Map.add g ~key:sp ~data:without)
+        EditResult.create (set_routes_from g ~port:sp ~routes:without)
     in
     let dist_given dist sp dp =
         try
@@ -227,8 +234,8 @@ let remove_route g ~from_code ~to_code ~dist =
 (* TODO: abstract out all the map stuff (create an add routes that takes real routes, not json routes) *)
 let add_route g source dest dist_string =
     let after_checks sp new_route =
-        let curr = Map.find_exn g sp in (* already checked if it was in there *)
-        let nmap = Map.add g ~key:sp ~data:(new_route::curr) in
+        let curr = routes_from_exn g sp in (* already checked if it was in there *)
+        let nmap = set_routes_from g ~port:sp ~routes:(new_route::curr) in
         EditResult.create nmap
     in
     try
