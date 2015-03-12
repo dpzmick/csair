@@ -136,7 +136,7 @@ let remove_port g code =
                         let start = (Route.from_port r) in
                         let curr_routes = Map.find_exn acc start in
                         let without = List.filter curr_routes ~f:(fun rr -> (not (Route.equal r rr))) in
-                        Map.add (Map.remove acc start) ~key:start ~data:without))
+                        Map.add acc ~key:start ~data:without))
 
 let add_port g code =
     let new_port = Port.default_of_code code in
