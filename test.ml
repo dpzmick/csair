@@ -444,6 +444,16 @@ let test_trip_cost _ =
         ~ps:["MEX";"SCL";"LIM";"SCL";"MEX"]
         ~after:(fun trip on -> assert_equal 6839.25 (Trip.cost_on_graph_exn trip ~on))
 
+let test_travel_time _ =
+    generic_trip_test
+        ~dataset:mini_data
+        ~ps:["MEX";"SCL"]
+        ~after:(fun trip on ->
+            let tt = Trip.time_to_travel_on_graph_exn trip ~on in
+            assert_equal true (cmp_float 13.842667 tt))
+
+(* TODO more travel time tests *)
+
 let trip_tests = [
     "test_trip_of_code_list_fail">:: test_trip_of_code_list_fail;
     "test_not_valid_on_graph">::     test_not_valid_on_graph;
@@ -451,6 +461,7 @@ let trip_tests = [
     "test_correct_distance">::       test_correct_distance;
     "test_gets_smallest_distance">:: test_gets_smallest_distance;
     "test_trip_cost">::              test_trip_cost;
+    "test_travel_time">::            test_travel_time;
 ]
 
 let suite =
