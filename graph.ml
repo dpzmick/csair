@@ -27,24 +27,24 @@ let add_all_ports {g;ds} ports =
     in {g=map;ds}
 
 (** Creates a Route.t from a json route, included here so we can look up ports (assuming they exist) *)
-let routify_json_route {g;ds} json_route =
-    let from_port = (port_for_code {g;ds} (List.nth_exn json_route.ports 0)) in
+let routify_json_route g json_route =
+    let from_port = (port_for_code g (List.nth_exn json_route.ports 0)) in
     match from_port with
     | None    -> None
     | Some fp -> (* lol because this is functional *)
-            let to_port = (port_for_code {g;ds} (List.nth_exn json_route.ports 1)) in
+            let to_port = (port_for_code g (List.nth_exn json_route.ports 1)) in
             match to_port with
             | None    -> None
             | Some tp -> Some (Route.create fp tp json_route.distance)
 
 (** Creates a Route.t from a json route, included here so we can look up ports (assuming they exist)
  * Does this "backwards", the first port is used as the to_port and the second is used as from_port *)
-let routify_json_route_backwards {g;ds} json_route =
-    let from_port = (port_for_code {g;ds} (List.nth_exn json_route.ports 1)) in
+let routify_json_route_backwards g json_route =
+    let from_port = (port_for_code g (List.nth_exn json_route.ports 1)) in
     match from_port with
     | None    -> None
     | Some fp -> (* lol because this is functional*)
-            let to_port = (port_for_code {g;ds} (List.nth_exn json_route.ports 0)) in
+            let to_port = (port_for_code g (List.nth_exn json_route.ports 0)) in
             match to_port with
             | None    -> None
             | Some tp -> Some (Route.create fp tp json_route.distance)
@@ -88,10 +88,10 @@ let t_of_dataset {metros; routes; directed;data_source} =
 
 (** Makes a Map_data_t.dataset from t *)
 (* TODO don't loose the data sources *)
-let dataset_of_t {g;ds} =
-    let metros = (all_ports {g;ds}) in
-    let routes = List.map (all_routes {g;ds}) ~f:Route.to_json_route in
-    {routes;metros;directed = true; data_source = ds}
+let dataset_of_t g =
+    let metros = (all_ports g) in
+    let routes = List.map (all_routes g) ~f:Route.to_json_route in
+    {routes;metros;directed = true; data_source = g.ds}
 
 let routes_from_port     {g;_} port = Map.find     g port
 let routes_from_port_exn {g;_} port = Map.find_exn g port
@@ -103,3 +103,5 @@ let set_routes_from {g;ds} ~port ~routes =
 (** Removes the port from the dataset, without attempting to remove any connected routes or anything *)
 let without_port_no_cleanup {g;ds} port =
     {g = Map.remove g port; ds}
+
+let has_port g p = List.exists (all_ports g) ~f:(Port.equal p)

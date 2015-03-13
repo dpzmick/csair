@@ -1,4 +1,6 @@
-open Core.Std
+open Map_data_t
+open Port
+open Route
 
 type t
 
@@ -23,3 +25,6 @@ val routes_from_port_exn : t -> Port.t -> Route.t list
 val set_routes_from : t -> port:Port.t -> routes:Route.t list -> t
 
 val without_port_no_cleanup : t -> Port.t -> t
+
+(* a bunch of queries *)
+val has_port : t -> Port.t -> bool
