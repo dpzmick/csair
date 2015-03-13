@@ -403,6 +403,14 @@ let test_trip_of_code_list_fail _ =
     | None   -> assert_equal true true
     | Some _ -> assert_failure "should not have been able to construct a trip"
 
+let test_not_valid_on_graph _ =
+    let on = Graph.t_of_dataset directed_data in
+    let ps = ["SCL";"LIM";"SCL"] in
+    let trip = Trip.t_of_code_list ps ~on in
+    match trip with
+    | None -> assert_failure "should not have failed to make trip"
+    | Some trip -> assert_equal false (Trip.valid_on_graph trip ~on)
+
 let test_valid_on_graph _ =
     let on = Graph.t_of_dataset mini_data in
     let ps = ["MEX";"SCL";"LIM";"SCL"] in
@@ -413,6 +421,7 @@ let test_valid_on_graph _ =
 
 let trip_tests = [
     "test_trip_of_code_list_fail">:: test_trip_of_code_list_fail;
+    "test_not_valid_on_graph">::     test_not_valid_on_graph;
     "test_valid_on_graph">::         test_valid_on_graph;
 ]
 
