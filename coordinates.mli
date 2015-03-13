@@ -1,7 +1,11 @@
-open Map_data_t
 open Core.Std
 
-type t = Map_data_t.coordinate
+type t = {
+  n: int option;
+  s: int option;
+  e: int option;
+  w: int option
+} with sexp, compare, fields
 
 include Comparable.S with type t := t
 

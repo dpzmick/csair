@@ -1,27 +1,27 @@
 (* specifies the json data format for atdgen *)
-type dataset = {
-    data_source <json name="data sources">: string list;
-    metros:     port list;
-    routes:     json_route list;
-    ~directed   <ocaml default="false">: bool;
+type port <ocaml predef module="Port" t="t"> = {
+  code: string;
+  name: string;
+  country: string;
+  continent: string;
+  timezone: float;
+  coordinates: coordinate;
+  population: int;
+  region: int
 }
 
-type coordinate = {
+type coordinate <ocaml predef module="Coordinates" t="t"> = {
     ?n <json name="N">: int option;
     ?s <json name="S">: int option;
     ?e <json name="E">: int option;
     ?w <json name="W">: int option;
 }
 
-type port = {
-    code:        string;
-    name:        string;
-    country:     string;
-    continent:   string;
-    timezone:    float;
-    coordinates: coordinate;
-    population:  int;
-    region:      int;
+type dataset = {
+    data_source <json name="data sources">: string list;
+    metros:     port list;
+    routes:     json_route list;
+    ~directed   <ocaml default="false">: bool;
 }
 
 type json_route = {

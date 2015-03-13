@@ -1,48 +1,20 @@
-open Map_data_t
 open Core.Std
 
 module T = struct
-    type t = Map_data_t.port
-
-    let empty = {
-        code = "";
-        name = "";
-        country = "";
-        continent = "";
-        timezone = 1.0;
-        coordinates = Coordinates.empty;
-        population = 1;
-        region = 1;
-    }
-
-    let compare p1 p2 =
-        let l = (String.compare      p1.code        p2.code)::[] in
-        let l = (String.compare      p1.name        p2.name)::l in
-        let l = (String.compare      p1.country     p2.country)::l in
-        let l = (Float.compare       p1.timezone    p2.timezone)::l in
-        let l = (Coordinates.compare p1.coordinates p2.coordinates)::l in
-        let l = (Int.compare         p1.population  p2.population)::l in
-        let l = (Int.compare         p1.region      p2.region)::l in
-        List.fold l
-            ~init:0
-            ~f:(fun acc i ->
-                match acc with
-                | 0 -> i
-                | a -> a)
-
-    (* TODO these are massive hacks!! *)
-    let sexp_of_t p = String.sexp_of_t p.name
-    let t_of_sexp _ = empty
+    type t = {
+      code: string;
+      name: string;
+      country: string;
+      continent: string;
+      timezone: float;
+      coordinates: Coordinates.t;
+      population: int;
+      region: int
+    } with sexp, compare, fields
 end
 
 include T
 include Comparable.Make(T)
-
-let code       p = p.code
-let name       p = p.name
-let timezone   p = p.timezone
-let population p = p.population
-let continent  p = p.continent
 
 let string_of_t p =
     sprintf "code: %s\nname: %s\ncountry: %s\ncontinent: %s\ntimezone: %f\ncoords: %s\npopulation: %d\nregion: %d"
@@ -54,6 +26,17 @@ let string_of_t p =
         (Coordinates.string_of_t p.coordinates)
         p.population
         p.region
+
+let empty = {
+        code = "";
+        name = "";
+        country = "";
+        continent = "";
+        timezone = 1.0;
+        coordinates = Coordinates.empty;
+        population = 1;
+        region = 1;
+    }
 
 let default_of_code code = {empty with code = code}
 
@@ -69,7 +52,6 @@ let modify_old p ~field ~value =
     | "name"       -> {p with name = value}
     | "country"    -> {p with country = value}
     | "continent"  -> {p with continent = value}
-
     | "timezone"   -> (try {p with timezone = (Float.of_string value)} with
                       | Invalid_argument _ -> raise (Invalid_argument "float"))
     | "population" -> population_update p value

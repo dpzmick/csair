@@ -27,11 +27,30 @@ let edit_port g ~code ~field ~value =
     | None    -> Edit_result.fail "port does not exist"
     | Some op ->
             try
-                let curr_routes = Graph.routes_from_port_exn g op in
                 let new_port = Port.modify_old op ~field ~value in
-                let new_routes = List.map curr_routes
-                        ~f:(fun r -> Route.create new_port (Route.to_port r) (Route.distance r)) in
-                Edit_result.create (Graph.set_routes_from g ~port:new_port ~routes:new_routes)
+                let new_routes =
+                    List.map (Graph.all_routes g) ~f:(fun r ->
+                        let sp =
+                            if (Port.equal (Route.from_port r) op)
+                            then new_port
+                            else (Route.from_port r)
+                        in
+                        let dp =
+                            if (Port.equal (Route.to_port r) op)
+                            then new_port
+                            else (Route.to_port r)
+                        in
+                        Route.create sp dp (Route.distance r))
+                in
+                let new_ports =
+                    List.map (Graph.all_ports g) ~f:(fun p ->
+                        if (Port.equal p op)
+                        then new_port
+                        else p)
+                in
+                Edit_result.create
+                    (Graph.add_all_routes
+                        (Graph.add_all_ports (Graph.empty) new_ports) new_routes)
             with
             | Failure "int_of_string"     -> Edit_result.fail "need integer number"
             | Invalid_argument "float"    -> Edit_result.fail "need floating point number"
