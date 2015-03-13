@@ -155,7 +155,6 @@ let add_route_cmd g cmd =
     | source::dest::dist::[] -> generic_edit g (aux source dest dist)
     | _                      -> (printf "command error: need source and dest\n"; g)
 
-
 let edit_cmd g cmd =
     match cmd with
     | "port"::"modify"::remain -> modify_port_cmd g remain
