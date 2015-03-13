@@ -191,12 +191,20 @@ let write_cmd g cmd =
     end;
     g
 
+let merge_cmd g remain =
+    match remain with
+    | filename::[] ->
+            let new_data = Ag_util.Json.from_file Map_data_j.read_dataset filename in
+            Graph.merge_with_dataset g new_data
+    | _ -> (printf "command error: merge command takes a file name"; g)
+
 let command g cmd =
     match cmd with
     | "query"::remain -> query_cmd g remain
     | "edit"::remain  -> edit_cmd g remain
     | "map"::remain   -> map_cmd g remain
     | "write"::remain -> write_cmd g remain
+    | "merge"::remain -> merge_cmd g remain
     | _ -> printf "error: command not recognized\n"; g (* in error, don't change anything *)
 
 let () =

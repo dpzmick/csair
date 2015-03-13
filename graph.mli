@@ -7,6 +7,7 @@ type t
 val empty : t
 val t_of_dataset : Map_data_t.dataset -> t
 val dataset_of_t : t -> Map_data_t.dataset
+val merge_with_dataset : t -> Map_data_t.dataset -> t
 
 val port_for_code : t -> string -> Port.t option
 
