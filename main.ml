@@ -6,11 +6,6 @@ open Sys
  * A highly imperative repl for querying and modifying the graph data
  * TODO this is literally abusive pls do something different
  *
- * ideas for editing (that aren't this, to give better errors)
- * -> create "edit" type (and query type)
- *      -> same as transactional thing in chess (make module submodule of graph and stuff)
- * -> How to pass everything though the graph with out being gross??
- *      -> if using above, then can just do match over type of edit in graph and behave appropriately
  **)
 
 let list_all_cities g =
