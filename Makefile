@@ -1,4 +1,4 @@
-PKG=atdgen
+PKG=atdgen,sexplib,sexplib.syntax
 
 all: test.native main.native
 

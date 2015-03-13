@@ -1,7 +1,10 @@
 open Port
 open Map_data_t
+open Core.Std
 
 type t
+
+include Comparable.S with type t := t
 
 (** creates a new t with from port, to port, and distance *)
 val create : Port.t -> Port.t -> int -> t
