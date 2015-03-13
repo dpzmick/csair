@@ -57,7 +57,6 @@ let distance_on_graph_exn ps ~on =
                 | Some route -> aux (p2::ps) (acc + (Route.distance route))
     in aux ps 0
 
-
 let time_to_travel_on_graph_exn ps ~on =
     let time_for_uni_accel_from_zero tov dx = (1.0 /. (tov /. 2.0)) *. dx in
     let flight_time r =
