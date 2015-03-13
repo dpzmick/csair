@@ -430,13 +430,13 @@ let test_correct_distance _ =
     generic_trip_test
         ~dataset:mini_data
         ~ps:["MEX";"SCL";"LIM"]
-        ~after:(fun trip on -> assert_equal (9982 + 2453) (Trip.distance_on_graph trip ~on))
+        ~after:(fun trip on -> assert_equal (9982 + 2453) (Trip.distance_on_graph_exn trip ~on))
 
 let test_gets_smallest_distance _ =
     generic_trip_test
         ~dataset:double_data
         ~ps:["MEX";"SCL";"LIM"]
-        ~after:(fun trip on -> assert_equal (9982 + 10) (Trip.distance_on_graph trip ~on))
+        ~after:(fun trip on -> assert_equal (9982 + 10) (Trip.distance_on_graph_exn trip ~on))
 
 let trip_tests = [
     "test_trip_of_code_list_fail">:: test_trip_of_code_list_fail;
