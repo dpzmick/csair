@@ -46,7 +46,8 @@ let list_query g cmd =
     match cmd with
     | "hubs"::[] -> print_hubs g
     | "continents"::[] -> print_continents g
-    | _ -> printf "command error: list query error\n"
+    | "cities"::[] -> list_all_cities g
+    | _ -> printf "command error: list query error (hubs continents cities)\n"
 
 let longest_single_flight_cmd g =
     let longest = Graph_analytics.longest_path g in
@@ -59,7 +60,7 @@ let biggest_query g cmd =
     match cmd with
     | "flight"::[] -> longest_single_flight_cmd g
     | "population"::[] -> printf "Largest Population: %d\n"  (Graph_analytics.largest_pop g);
-    | _ -> printf "command error: error to greatest query\n"
+    | _ -> printf "command error: error to greatest query (flight population)\n"
 
 let smallest_single_flight_cmd g =
     let longest = Graph_analytics.shortest_path g in
@@ -72,17 +73,17 @@ let smallest_query g cmd =
     match cmd with
     | "flight"::[] -> smallest_single_flight_cmd g
     | "population"::[] -> printf "Smallest Population: %d\n"  (Graph_analytics.smallest_pop g);
-    | _ -> printf "command error: error to greatest query\n"
+    | _ -> printf "command error: error to greatest query (flight population)\n"
 
 let average_query g cmd =
     match cmd with
     | "flight"::[] -> printf "not yet implemented\n"
     | "population"::[] -> printf "Average Population: %f\n"  (Graph_analytics.average_population g);
-    | _ -> printf "command error: error to greatest query\n"
+    | _ -> printf "command error: error to greatest query (flight population)\n"
 
 let trip_query on ps =
     match Trip.t_of_code_list ps ~on with
-    | None    -> printf "trip is not valid"
+    | None    -> printf "trip is not valid\n"
     | Some t ->
             begin
                 printf "trip cost: %f\n" (Trip.cost_on_graph_exn t ~on);
@@ -99,8 +100,8 @@ let query_cmd g cmd =
         | "smallest"::remain -> smallest_query g remain
         | "average"::remain -> average_query g remain
         | "trip"::remain -> trip_query g remain
-        | other::_ -> printf "command error: query %s is not a valid query\n" other
-        | [] -> printf "command error: no query given\n"
+        | other::_ -> printf "command error: query %s is not a valid query (ports list biggest smallest average trip)\n" other
+        | [] -> printf "command error: no query given (ports list biggest smallest average trip)\n"
     end;
     g (* "return" the same graph *)
 
@@ -163,7 +164,7 @@ let edit_cmd g cmd =
     | "route"::"modify"::remain -> modify_route_cmd g remain
     | "route"::"delete"::remain -> delete_route_cmd g remain
     | "route"::"add"::remain -> add_route_cmd g remain
-    | _ -> printf "command error: invalid edit command\n"; g
+    | _ -> printf "command error: invalid edit command ([port,route] modify delete add)\n"; g
 
 let map_cmd g cmd =
     begin
@@ -190,7 +191,7 @@ let merge_cmd g remain =
     | filename::[] ->
             let new_data = Ag_util.Json.from_file Map_data_j.read_dataset filename in
             Graph.merge_with_dataset g new_data
-    | _ -> (printf "command error: merge command takes a file name"; g)
+    | _ -> (printf "command error: merge command takes a file name\n"; g)
 
 let command g cmd =
     match cmd with
@@ -199,7 +200,7 @@ let command g cmd =
     | "map"::remain   -> map_cmd g remain
     | "write"::remain -> write_cmd g remain
     | "merge"::remain -> merge_cmd g remain
-    | _ -> printf "error: command not recognized\n"; g (* in error, don't change anything *)
+    | _ -> printf "error: command not recognized (query edit map write merge)\n"; g (* in error, don't change anything *)
 
 let () =
     let g = Graph.t_of_dataset (Ag_util.Json.from_file Map_data_j.read_dataset "map_data.json") in
