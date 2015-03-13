@@ -40,7 +40,7 @@ let hubs g =
         List.fold (Graph.all_ports g)
             ~init:Int.Map.empty
             ~f:(fun acc port ->
-                let len = List.length (Graph.routes_from_port g port) in
+                let len = List.length (Graph.routes_from_port_exn g port) in
                 match Map.find acc len with
                 | None         -> Map.add acc ~key:len ~data:[port]
                 | Some sources -> Map.add acc ~key:len ~data:(port::sources)

@@ -27,7 +27,7 @@ let edit_port g ~code ~field ~value =
     | None    -> Edit_result.fail "port does not exist"
     | Some op ->
             try
-                let curr_routes = Graph.routes_from_exn g op in
+                let curr_routes = Graph.routes_from_port_exn g op in
                 let new_port = Port.modify_old op ~field ~value in
                 let new_routes = List.map curr_routes
                         ~f:(fun r -> Route.create new_port (Route.to_port r) (Route.distance r)) in
@@ -53,7 +53,7 @@ let remove_port g code =
                     ~init:g
                     ~f:(fun acc r ->
                         let start = (Route.from_port r) in
-                        let curr_routes = Graph.routes_from_exn acc start in
+                        let curr_routes = Graph.routes_from_port_exn acc start in
                         let without = List.filter curr_routes ~f:(fun rr -> (not (Route.equal r rr))) in
                         Graph.set_routes_from acc ~port:start ~routes:without))
 
@@ -65,7 +65,7 @@ let add_port g code =
 
 let edit_route g ~from_code ~to_code ~new_dist_string =
     let after_checks new_dist sp dp old_route =
-        let curr_routes = Graph.routes_from_exn g sp in
+        let curr_routes = Graph.routes_from_port_exn g sp in
         let without_routes = List.filter curr_routes ~f:(fun e -> not (Route.equal e old_route)) in
         let new_route = Route.create sp dp new_dist in
         let new_routes = new_route::without_routes in
@@ -98,7 +98,7 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
 let remove_route g ~from_code ~to_code ~dist =
     (** TODO consider moving the do_removal function into the graph *)
     let do_removal sp r =
-        let curr = Graph.routes_from_exn g sp in
+        let curr = Graph.routes_from_port_exn g sp in
         let without = List.filter curr ~f:(fun rr -> (not (Route.equal r rr))) in
         Edit_result.create (Graph.set_routes_from g ~port:sp ~routes:without)
     in
@@ -137,7 +137,7 @@ let remove_route g ~from_code ~to_code ~dist =
 
 let add_route g source dest dist_string =
     let after_checks sp new_route =
-        let curr = Graph.routes_from_exn g sp in (* already checked if it was in there *)
+        let curr = Graph.routes_from_port_exn g sp in (* already checked if it was in there *)
         let nmap = Graph.set_routes_from g ~port:sp ~routes:(new_route::curr) in
         Edit_result.create nmap
     in

@@ -68,7 +68,7 @@ let test_routes_from_port _ =
     match p with
     | None    -> assert_failure "the port wasn't found"
     | Some p ->
-            let outgoing = Graph.routes_from_port g p in
+            let outgoing = Graph.routes_from_port_exn g p in
             let ports = List.map ~f:Route.to_port outgoing in
             let codes = List.map ~f:Port.code ports in
             assert_contains_all should codes
@@ -81,7 +81,7 @@ let test_routes_from_port_directed _ =
     match p with
     | None    -> assert_failure "the port wasn't found"
     | Some p ->
-            let outgoing = Graph.routes_from_port g p in
+            let outgoing = Graph.routes_from_port_exn g p in
             let ports = List.map ~f:Route.to_port outgoing in
             let codes = List.map ~f:Port.code ports in
             assert_contains_all should codes
@@ -197,7 +197,7 @@ let test_route_add _ =
         ~edit:(Edit.route_add ~from_code:"LIM" ~to_code:"SCL" ~dist:"100")
         ~after:(fun gg ->
             let shoulds = [("SCL", 2453); ("MEX", 1235); ("SCL", 100)] in (* (code,distance) of reachable *)
-            let actuals = (Graph.routes_from_port gg (Option.value_exn (Graph.port_for_code gg "LIM"))) in
+            let actuals = (Graph.routes_from_port_exn gg (Option.value_exn (Graph.port_for_code gg "LIM"))) in
             let actuals = List.map actuals ~f:(fun r -> (Port.code (Route.to_port r), Route.distance r)) in
             assert_contains_all actuals shoulds)
 

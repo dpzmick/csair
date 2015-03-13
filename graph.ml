@@ -57,11 +57,11 @@ let add_all_routes g routes =
 let empty = Port.Map.empty
 
 (** all the ports in the dataset *)
-let all_ports ports_to_routes = Map.keys ports_to_routes
+let all_ports g = Map.keys g
 
 (** all the routes in the dataset *)
-let all_routes ports_to_routes =
-    Map.fold ports_to_routes
+let all_routes g =
+    Map.fold g
         ~init:[]
         ~f:(fun ~key:_ ~data:routes acc -> acc @ routes)
 
@@ -86,8 +86,8 @@ let dataset_of_t g =
     let routes = List.map (all_routes g) ~f:Route.to_json_route in
     {routes;metros;directed = true; data_source = []}
 
-let routes_from     g port = Map.find     g port
-let routes_from_exn g port = Map.find_exn g port
+let routes_from_port     g port = Map.find     g port
+let routes_from_port_exn g port = Map.find_exn g port
 
 let set_routes_from g ~port ~routes = Map.add g ~key:port ~data:routes
 
