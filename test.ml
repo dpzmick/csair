@@ -9,6 +9,10 @@ let directed_data =
     let contents = In_channel.read_all "directed_data.json" in
     Map_data_j.dataset_of_string contents
 
+let double_data =
+    let contents = In_channel.read_all "double_data.json" in
+    Map_data_j.dataset_of_string contents
+
 let assert_contains_all shoulds actuals =
     begin
         List.iter ~f:(fun s -> assert_equal true (List.exists actuals ~f:(fun a -> a = s))) shoulds;
@@ -396,6 +400,13 @@ let test_route_rm_multiple _ =
 (**********************************************************************
 *                             TRIP TESTS                             *
 **********************************************************************)
+let generic_trip_test ~dataset ~ps ~after =
+    let on = Graph.t_of_dataset dataset in
+    let trip = Trip.t_of_code_list ps ~on in
+    match trip with
+    | None -> assert_failure "should not have failed to make trip"
+    | Some trip -> (after trip on)
+
 let test_trip_of_code_list_fail _ =
     let on = Graph.t_of_dataset mini_data in
     let ps = ["DNE"] in
@@ -404,25 +415,35 @@ let test_trip_of_code_list_fail _ =
     | Some _ -> assert_failure "should not have been able to construct a trip"
 
 let test_not_valid_on_graph _ =
-    let on = Graph.t_of_dataset directed_data in
-    let ps = ["SCL";"LIM";"SCL"] in
-    let trip = Trip.t_of_code_list ps ~on in
-    match trip with
-    | None -> assert_failure "should not have failed to make trip"
-    | Some trip -> assert_equal false (Trip.valid_on_graph trip ~on)
+    generic_trip_test
+        ~dataset:directed_data
+        ~ps:["SCL";"LIM";"SCL"]
+        ~after:(fun trip on -> assert_equal false (Trip.valid_on_graph trip ~on))
 
 let test_valid_on_graph _ =
-    let on = Graph.t_of_dataset mini_data in
-    let ps = ["MEX";"SCL";"LIM";"SCL"] in
-    let trip = Trip.t_of_code_list ps ~on in
-    match trip with
-    | None -> assert_failure "should not have failed to make trip"
-    | Some trip -> assert_equal true (Trip.valid_on_graph trip ~on)
+    generic_trip_test
+        ~dataset:mini_data
+        ~ps:["MEX";"SCL";"LIM";"SCL"]
+        ~after:(fun trip on -> assert_equal true (Trip.valid_on_graph trip ~on))
+
+let test_correct_distance _ =
+    generic_trip_test
+        ~dataset:mini_data
+        ~ps:["MEX";"SCL";"LIM"]
+        ~after:(fun trip on -> assert_equal (9982 + 2453) (Trip.distance_on_graph trip ~on))
+
+let test_gets_smallest_distance _ =
+    generic_trip_test
+        ~dataset:double_data
+        ~ps:["MEX";"SCL";"LIM"]
+        ~after:(fun trip on -> assert_equal (9982 + 10) (Trip.distance_on_graph trip ~on))
 
 let trip_tests = [
     "test_trip_of_code_list_fail">:: test_trip_of_code_list_fail;
     "test_not_valid_on_graph">::     test_not_valid_on_graph;
     "test_valid_on_graph">::         test_valid_on_graph;
+    "test_correct_distance">::       test_correct_distance;
+    "test_gets_smallest_distance">:: test_gets_smallest_distance;
 ]
 
 let suite =

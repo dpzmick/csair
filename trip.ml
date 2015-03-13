@@ -10,6 +10,7 @@ let t_of_code_list lst ~on =
     | true -> None
     | false -> Some (List.map lst ~f:(fun e -> Option.value_exn e))
 
+(* this is beautiful (tears) *)
 let rec valid_on_graph ps ~on =
     match ps with
     | []         -> true
@@ -23,5 +24,7 @@ let rec valid_on_graph ps ~on =
                     local && (valid_on_graph (p2::rs) ~on)
 
 let cost_on_graph _ ~on:_ = 0
-let distance_on_graph _ ~on:_ = 0
-let time_to_travel_on_graph _ ~on:_ = 0
+
+let distance_on_graph ps ~on = 0
+
+let time_to_travel_on_graph _ ~on = 0
