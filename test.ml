@@ -86,6 +86,11 @@ let test_routes_from_port_directed _ =
             let codes = List.map ~f:Port.code ports in
             assert_contains_all should codes
 
+
+(**********************************************************************
+*                     ANALYTICS TESTS START HERE                     *
+**********************************************************************)
+
 let test_longest _ =
     let g = Graph.t_of_dataset mini_data in
     match (Graph_analytics.longest_path g) with
@@ -132,6 +137,11 @@ let test_hubs _ =
     match hubs with
     | None -> assert_failure "no hubs found"
     | Some (_, ports) -> assert_contains_all shoulds (List.map ports ~f:Port.code)
+
+
+(**********************************************************************
+*                       EDIT TESTS START HERE                        *
+**********************************************************************)
 
 let generic_edit_fail ~dataset ~edit ~expected_error =
     let g = Graph.t_of_dataset dataset in
@@ -190,7 +200,6 @@ let test_route_add_dne_dest _ =
 
 (* NOTE: remember that mini_data is not directed *)
 (* NOTE: but, the add route only adds one direction *)
-(* should work *)
 let test_route_add _ =
     generic_edit_success
         ~dataset:mini_data
@@ -384,8 +393,32 @@ let test_route_rm_multiple _ =
                 | Some _ -> assert_equal true true (* just let this go, we test this elsewhere *)
             end
 
+(**********************************************************************
+*                             TRIP TESTS                             *
+**********************************************************************)
+let test_trip_of_code_list_fail _ =
+    let on = Graph.t_of_dataset mini_data in
+    let ps = ["DNE"] in
+    match Trip.t_of_code_list ps ~on with
+    | None   -> assert_equal true true
+    | Some _ -> assert_failure "should not have been able to construct a trip"
+
+let test_valid_on_graph _ =
+    let on = Graph.t_of_dataset mini_data in
+    let ps = ["MEX";"SCL";"LIM";"SCL"] in
+    let trip = Trip.t_of_code_list ps ~on in
+    match trip with
+    | None -> assert_failure "should not have failed to make trip"
+    | Some trip -> assert_equal true (Trip.valid_on_graph trip ~on)
+
+let trip_tests = [
+    "test_trip_of_code_list_fail">:: test_trip_of_code_list_fail;
+    "test_valid_on_graph">::         test_valid_on_graph;
+]
+
 let suite =
     "suite">:::
+        List.append
         ["always_pass">::               always_pass;
          "test_coord_equal">::          test_coord_equal;
          "test_port_equal">::           test_port_equal;
@@ -430,6 +463,8 @@ let suite =
          "test_route_rm_dne2">::        test_route_rm_dne2;
          "test_route_rm_nonint">::      test_route_rm_nonint;
          "test_route_rm_multiple">::    test_route_rm_multiple]
+
+        trip_tests
 
 let () =
     run_test_tt_main suite
