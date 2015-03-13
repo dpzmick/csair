@@ -47,6 +47,7 @@ let remove_port g code =
             let affected_routes = List.filter (Graph.all_routes g) ~f:(fun r ->
                 (Port.equal p (Route.from_port r)) || (Port.equal p (Route.to_port r)))
             in
+            (** TODO consider moving this logic into the graph *)
             Edit_result.create
                 (List.fold affected_routes
                     ~init:g
@@ -95,6 +96,7 @@ let edit_route g ~from_code ~to_code ~new_dist_string =
     | Failure "int_of_string" -> Edit_result.fail "new distance must be an integer"
 
 let remove_route g ~from_code ~to_code ~dist =
+    (** TODO consider moving the do_removal function into the graph *)
     let do_removal sp r =
         let curr = Graph.routes_from_exn g sp in
         let without = List.filter curr ~f:(fun rr -> (not (Route.equal r rr))) in
