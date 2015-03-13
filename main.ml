@@ -20,7 +20,13 @@ let port_info_for g code =
     let port = Graph.port_for_code g code in
     match port with
     | None   -> printf "port %s not found!\n" code
-    | Some p -> printf "port info for %s\n---\n%s\n" code (Port.string_of_t p)
+    | Some p ->
+            begin
+                printf "port info for %s\n---\n%s\n" code (Port.string_of_t p);
+                printf "Has flights to: \n";
+                List.iter (Graph.routes_from_port_exn g p) ~f:(fun r ->
+                    printf "\t%s\n" (Port.code (Route.to_port r)));
+            end
 
 let port_query g codes = List.iter codes ~f:(port_info_for g)
 
@@ -79,6 +85,16 @@ let average_query g cmd =
     | "population"::[] -> printf "Average Population: %f\n"  (Graph_analytics.average_population g);
     | _ -> printf "command error: error to greatest query\n"
 
+let trip_query on ps =
+    match Trip.t_of_code_list ps ~on with
+    | None    -> printf "trip is not valid"
+    | Some t ->
+            begin
+                printf "trip cost: %f\n" (Trip.cost_on_graph_exn t ~on);
+                printf "trip distance: %d\n" (Trip.distance_on_graph_exn t ~on);
+                printf "trip travel time: %f\n" (Trip.time_to_travel_on_graph_exn t ~on)
+            end
+
 let query_cmd g cmd =
     begin
         match cmd with
@@ -87,6 +103,7 @@ let query_cmd g cmd =
         | "biggest"::remain -> biggest_query g remain
         | "smallest"::remain -> smallest_query g remain
         | "average"::remain -> average_query g remain
+        | "trip"::remain -> trip_query g remain
         | other::_ -> printf "command error: query %s is not a valid query\n" other
         | [] -> printf "command error: no query given\n"
     end;

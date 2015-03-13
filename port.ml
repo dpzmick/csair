@@ -16,16 +16,19 @@ module T = struct
     }
 
     let compare p1 p2 =
-        let l = (String.equal p1.code p2.code)::[] in
-        let l = (String.equal p2.name p2.name)::l in
-        let l = (String.equal p2.country p2.country)::l in
-        let l = (p1.timezone = p2.timezone)::l in
-        let l = (Coordinates.equal p1.coordinates p2.coordinates)::l in
-        let l = (p1.population = p2.population)::l in
-        let l = (p1.region = p2.region)::l in
-        if List.fold l ~init:true ~f:(&&)
-        then String.compare p1.code p2.code
-        else -1
+        let l = (String.compare      p1.code        p2.code)::[] in
+        let l = (String.compare      p1.name        p2.name)::l in
+        let l = (String.compare      p1.country     p2.country)::l in
+        let l = (Float.compare       p1.timezone    p2.timezone)::l in
+        let l = (Coordinates.compare p1.coordinates p2.coordinates)::l in
+        let l = (Int.compare         p1.population  p2.population)::l in
+        let l = (Int.compare         p1.region      p2.region)::l in
+        List.fold l
+            ~init:0
+            ~f:(fun acc i ->
+                match acc with
+                | 0 -> i
+                | a -> a)
 
     (* TODO these are massive hacks!! *)
     let sexp_of_t p = String.sexp_of_t p.name
